@@ -345,11 +345,15 @@ final class Renderer {
     private let bloomExtractPipeline: MTLComputePipelineState
     private let blurHPipeline: MTLComputePipelineState
     private let blurVPipeline: MTLComputePipelineState
+    private let grainHPipeline: MTLComputePipelineState
+    private let grainVPipeline: MTLComputePipelineState
     private let histogramPipeline: MTLComputePipelineState
     private let displayPipeline: MTLRenderPipelineState
 
     private(set) var sourceTexture: MTLTexture?
     private var processedTexture: MTLTexture?
+    private var grainTexture: MTLTexture?
+    private var grainScratch: MTLTexture?
     private var bloomA: MTLTexture?
     private var bloomB: MTLTexture?
     private var blackTexture: MTLTexture
@@ -408,6 +412,8 @@ final class Renderer {
             bloomExtractPipeline = try Renderer.computePipeline(library, "bloomExtract", device: device)
             blurHPipeline = try Renderer.computePipeline(library, "blurHorizontal", device: device)
             blurVPipeline = try Renderer.computePipeline(library, "blurVertical", device: device)
+            grainHPipeline = try Renderer.computePipeline(library, "grainHorizontal", device: device)
+            grainVPipeline = try Renderer.computePipeline(library, "grainVertical", device: device)
             histogramPipeline = try Renderer.computePipeline(library, "histogram", device: device)
             displayPipeline = try Renderer.renderPipeline(library, device: device)
         } catch {
@@ -482,6 +488,13 @@ final class Renderer {
         descriptor.usage = [.shaderRead, .shaderWrite]
         descriptor.storageMode = .shared
         processedTexture = device.makeTexture(descriptor: descriptor)
+        let grainDescriptor = MTLTextureDescriptor.texture2DDescriptor(
+            pixelFormat: .rgba8Unorm, width: texture.width, height: texture.height, mipmapped: false
+        )
+        grainDescriptor.usage = [.shaderRead, .shaderWrite]
+        grainDescriptor.storageMode = .private
+        grainTexture = device.makeTexture(descriptor: grainDescriptor)
+        grainScratch = device.makeTexture(descriptor: grainDescriptor)
         let bloomW = max(1, texture.width / 2)
         let bloomH = max(1, texture.height / 2)
         let bloomDescriptor = MTLTextureDescriptor.texture2DDescriptor(
@@ -541,6 +554,8 @@ final class Renderer {
         defer { stateLock.unlock() }
         sourceTexture = nil
         processedTexture = nil
+        grainTexture = nil
+        grainScratch = nil
         bloomA = nil
         bloomB = nil
         canvas.setImage(.zero)
@@ -604,6 +619,8 @@ final class Renderer {
         stateLock.lock()
         let source = sourceTexture
         let processed = processedTexture
+        let grainTarget = grainTexture
+        let grainStage = grainScratch
         let neutral = neutralTexture ?? lutLibrary.neutral0 ?? blackTexture
         let film = filmTexture ?? neutral
         let userLUT = userLUTTexture
@@ -625,6 +642,10 @@ final class Renderer {
         let viewW = Float(drawable.texture.width)
         let viewH = Float(drawable.texture.height)
         let backing = Float(view.window?.backingScaleFactor ?? 2)
+
+        let grainActive = edit.adjustments.grain > 0.001
+        var shown = processed
+        if grainActive, let grainTarget { shown = grainTarget }
 
         if let source, let processed, let bloom, shouldProcess {
             var uniforms = RenderUniforms(
@@ -665,13 +686,18 @@ final class Renderer {
                 offset: (0, 0),
                 size: (source.width, source.height)
             )
+            if grainActive, let grainTarget, let grainStage {
+                encodeGrain(commandBuffer: commandBuffer, source: processed,
+                            scratch: grainStage, destination: grainTarget,
+                            uniforms: uniforms)
+            }
         }
-        if wantsHistogram, let processed {
-            encodeHistogram(commandBuffer: commandBuffer, texture: processed, callback: true)
+        if wantsHistogram, let shown {
+            encodeHistogram(commandBuffer: commandBuffer, texture: shown, callback: true)
         }
 
         let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: pass)!
-        if let processed, source != nil {
+        if let shown, source != nil {
             let imageW = Float(source!.width)
             let imageH = Float(source!.height)
             let viewSize = CGSize(width: CGFloat(viewW), height: CGFloat(viewH))
@@ -696,7 +722,7 @@ final class Renderer {
             display.compareEnabled = compare ? 1 : 0
             display.splitX = Float(split)
             encoder.setRenderPipelineState(displayPipeline)
-            encoder.setFragmentTexture(processed, index: 0)
+            encoder.setFragmentTexture(shown, index: 0)
             encoder.setFragmentTexture(source, index: 1)
             encoder.setFragmentBytes(&display, length: MemoryLayout<DisplayUniforms>.stride, index: 0)
             encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
@@ -745,6 +771,41 @@ final class Renderer {
             encoder.setBytes(&u, length: MemoryLayout<RenderUniforms>.stride, index: 0)
             encoder.dispatchThreads(
                 MTLSize(width: bloom.width, height: bloom.height, depth: 1),
+                threadsPerThreadgroup: MTLSize(width: 16, height: 16, depth: 1)
+            )
+            encoder.endEncoding()
+        }
+    }
+
+    /// Separable Boolean particle grain. The horizontal pass turns the binary
+    /// particle lattice into row coverage, the vertical pass filters the
+    /// columns and subtracts the clean image. Runs in its own passes so the
+    /// film pass never pays for neighbourhood sampling when grain is at zero.
+    private func encodeGrain(commandBuffer: MTLCommandBuffer,
+                             source: MTLTexture,
+                             scratch: MTLTexture,
+                             destination: MTLTexture,
+                             uniforms: RenderUniforms) {
+        var u = uniforms
+        if let encoder = commandBuffer.makeComputeCommandEncoder() {
+            encoder.setComputePipelineState(grainHPipeline)
+            encoder.setTexture(source, index: 0)
+            encoder.setTexture(scratch, index: 1)
+            encoder.setBytes(&u, length: MemoryLayout<RenderUniforms>.stride, index: 0)
+            encoder.dispatchThreads(
+                MTLSize(width: scratch.width, height: scratch.height, depth: 1),
+                threadsPerThreadgroup: MTLSize(width: 16, height: 16, depth: 1)
+            )
+            encoder.endEncoding()
+        }
+        if let encoder = commandBuffer.makeComputeCommandEncoder() {
+            encoder.setComputePipelineState(grainVPipeline)
+            encoder.setTexture(source, index: 0)
+            encoder.setTexture(scratch, index: 1)
+            encoder.setTexture(destination, index: 2)
+            encoder.setBytes(&u, length: MemoryLayout<RenderUniforms>.stride, index: 0)
+            encoder.dispatchThreads(
+                MTLSize(width: destination.width, height: destination.height, depth: 1),
                 threadsPerThreadgroup: MTLSize(width: 16, height: 16, depth: 1)
             )
             encoder.endEncoding()
@@ -1211,10 +1272,24 @@ final class Renderer {
                 encoder.endEncoding()
             }
         }
+        // Grain reads the clean processed image over a neighbourhood, so it
+        // needs a staging texture plus the horizontal coverage scratch; without
+        // grain the final texture is written directly and read back unchanged.
+        let grainDestination: MTLTexture
+        let exportScratch: MTLTexture?
+        if uniforms.grain > 0.001,
+           let staging = makeRGBA8Texture(width: width, height: height, write: true),
+           let scratch = makeRGBA8Texture(width: width, height: height, write: true) {
+            grainDestination = staging
+            exportScratch = scratch
+        } else {
+            grainDestination = destination
+            exportScratch = nil
+        }
         encodeProcess(
             commandBuffer: command,
             source: source,
-            destination: destination,
+            destination: grainDestination,
             film: film,
             neutral: neutral,
             bloom: (uniforms.halation > 0.001 || uniforms.bloom > 0.001) ? bloomA : blackTexture,
@@ -1224,6 +1299,11 @@ final class Renderer {
             offset: (0, 0),
             size: (width, height)
         )
+        if grainDestination !== destination, let exportScratch {
+            encodeGrain(commandBuffer: command, source: grainDestination,
+                        scratch: exportScratch, destination: destination,
+                        uniforms: uniforms)
+        }
         command.commit()
         command.waitUntilCompleted()
         return Renderer.makeOwnedCGImage(width: width, height: height) { buffer in

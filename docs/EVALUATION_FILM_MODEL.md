@@ -151,6 +151,10 @@ Alcedo 把这套物理模型离线烘焙成 113 个 **ACEScc→ACEScc LMT**（�
 1. **颗粒搬到密度域或至少布尔化**（P0）
    - 最小改动：把 `value_noise` 换成 per-tap Bernoulli（`draw < u`）+ 高斯窗，幅度用一条按胶片型号的 σD 曲线（可先沿用 Alcedo 的 11 点表）。
    - 完整改动：在 LMT 之前以 CMY 密度做 `Poisson-binomial`，再经 LMT/显示变换；需要把 LMT 拆成“film LUT + print LUT”两段（65³ 源 cube 支持 3-LUT/4-LUT 拓扑）。
+   - **本分支已落地最小改动**：`grainHorizontal` / `grainVertical` 两段 pass，
+     逐像素布尔粒子场、可分离高斯、11 点 σD 曲线、共享/逐层彩粒混合、
+     Σw² 方差归一化。同灰阶测试下颗粒 σ = 3.64 / 5.96 / 3.12 / 1.55
+     （旧模型 4.31 / 6.40 / 2.91 / 1.41）。Poisson-binomial 密度域版本仍未做。
 2. **RAW 前端接 LibRaw**（P0，需改构建链）：换取 RCD/DemosaicNet、DNG 相机矩阵、对立色高光重建；否则只能停留在 `CIRAWFilter` 黑盒。
 3. **逐像素 ACES 2.0 DRT**（P1）：把 `neutral-0` 表换成 aces-core 的解析式实现，消除 33³ 采样误差。
 4. **光谱光晕**（P2）：按 µm 的核 + 指数尾 + 逐通道回反射，替换当前阈值 bloom。

@@ -183,17 +183,6 @@ inline float hash21(float2 p) {
     return fract(p.x * p.y);
 }
 
-inline float value_noise(float2 p, float seed) {
-    float2 i = floor(p);
-    float2 f = fract(p);
-    float2 u = f * f * (3.0f - 2.0f * f);
-    float a = hash21(i + seed);
-    float b = hash21(i + float2(1.0f, 0.0f) + seed);
-    float c = hash21(i + float2(0.0f, 1.0f) + seed);
-    float d = hash21(i + float2(1.0f, 1.0f) + seed);
-    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
-}
-
 inline float soft_clip(float x) {
     return x < 0.0f ? 0.0f : x;
 }
@@ -261,6 +250,173 @@ kernel void blurVertical(texture2d<float, access::sample> src [[texture(0)]],
     }
     acc += src.sample(s, uv) * 0.227f;
     dst.write(acc, gid);
+}
+
+// -----------------------------------------------------------------------------
+// Film grain (Boolean particle model)
+// -----------------------------------------------------------------------------
+//
+// Reference implementations: the IPOL 2017 real-film grain renderer and
+// AlcedoStudio's separable Bernoulli grain (drt_neighbor.metal, GPLv3).
+// Only the algorithm was studied; this is an independent Metal implementation.
+//
+// A developed grain is a binary sample whose probability is the local density.
+// Every output pixel reads the same lattice, so neighbouring pixels see the
+// same particles and the field stays coherent. Two separable Gaussian passes
+// turn that lattice into clumps: `grainHorizontal` filters each row into a
+// coverage texture, `grainVertical` filters the columns and compares the
+// coverage with the clean image, which preserves the mean density (and tone).
+
+// RMS granularity (diffuse, x1000) sampled at density 0.0 ... 1.0 for the
+// three emulsion layers of a typical ISO 400 colour negative. Blue is the
+// coarsest layer and red the finest, as in the datasheet curves used by
+// AlcedoStudio.
+constant float kGrainGranularityR[11] = {
+    1.95f, 2.10f, 2.48f, 2.60f, 2.72f, 2.86f, 2.99f, 3.10f, 3.19f, 3.28f, 3.36f
+};
+constant float kGrainGranularityG[11] = {
+    1.90f, 2.06f, 2.30f, 2.44f, 2.58f, 2.68f, 2.75f, 3.05f, 3.14f, 3.22f, 3.30f
+};
+constant float kGrainGranularityB[11] = {
+    2.35f, 2.51f, 2.66f, 2.80f, 2.91f, 2.99f, 3.00f, 3.15f, 3.24f, 3.32f, 3.40f
+};
+
+inline float grainRandom(int2 p, uint seed) {
+    uint h = uint(p.x) * 0x8da6b343u ^ uint(p.y) * 0xd8163841u ^ seed * 0xcb1ab31fu;
+    h ^= h >> 16;
+    h *= 0x7feb352du;
+    h ^= h >> 15;
+    h *= 0x846ca68bu;
+    h ^= h >> 16;
+    return float(h & 0x00ffffffu) * (1.0f / 16777216.0f);
+}
+
+inline float grainGranularity(int channel, float density) {
+    float x = clamp(density, 0.0f, 1.0f) * 10.0f;
+    int i = int(floor(x));
+    int j = min(i + 1, 10);
+    float t = x - float(i);
+    if (channel == 0) return mix(kGrainGranularityR[i], kGrainGranularityR[j], t);
+    if (channel == 1) return mix(kGrainGranularityG[i], kGrainGranularityG[j], t);
+    return mix(kGrainGranularityB[i], kGrainGranularityB[j], t);
+}
+
+// Clump size in pixels. Grain is sized in image units, not pixels, so the same
+// photo keeps its grain when previewed small and exported at full resolution.
+inline float grainSigma(float grainSize, float roughness, uint width, uint height) {
+    float minDim = max(min(float(width), float(height)), 1.0f);
+    float rough = clamp(roughness / 100.0f, 0.0f, 1.0f);
+    float sigma = (1.2f + clamp(grainSize, 0.0f, 100.0f) / 100.0f * 3.3f)
+                * (0.85f + 0.3f * rough) * (minDim / 1600.0f);
+    return max(sigma, 1.0f);
+}
+
+// Gaussian taps sit on every pixel row/column so neighbouring pixels share the
+// particle lattice. The radius is capped to keep the cost bounded on large
+// exports (the kernel then becomes a wide, nearly flat average, which still
+// produces clumps of the requested size).
+inline int grainRadius(float sigma) {
+    return min(9, max(1, int(ceil(2.0f * sigma))));
+}
+
+kernel void grainHorizontal(texture2d<float, access::sample> src [[texture(0)]],
+                            texture2d<float, access::write> dst [[texture(1)]],
+                            constant Uniforms &u [[buffer(0)]],
+                            uint2 gid [[thread_position_in_grid]])
+{
+    if (gid.x >= dst.get_width() || gid.y >= dst.get_height()) return;
+    constexpr sampler s(filter::linear, address::clamp_to_edge);
+
+    float sigma = grainSigma(u.grainSize, u.grainRoughness, dst.get_width(), dst.get_height());
+    int radius = grainRadius(sigma);
+
+    float chroma = clamp(u.grainChroma / 100.0f, 0.0f, 1.0f);
+    uint seed = uint(clamp(u.grainSeed, 0.0f, 4096.0f) * 100.0f) + 1u;
+    float2 texSize = float2(src.get_width(), src.get_height());
+    int2 origin = int2(gid);
+
+    float3 coverage = float3(0.0f);
+    float total = 0.0f;
+    for (int i = -radius; i <= radius; i++) {
+        // Taps are one pixel apart; a larger stride would put adjacent pixels
+        // on different particle sublattices and turn the grain into static.
+        int2 p = int2(origin.x + i, origin.y);
+        float d = float(i);
+        float w = exp(-0.5f * d * d / (sigma * sigma));
+        float2 uv = (float2(p) + 0.5f) / texSize;
+        float3 density = clamp(src.sample(s, uv).rgb, 0.0f, 1.0f);
+        float densityLuma = dot(density, LUMA);
+        float shared = grainRandom(p, seed) < densityLuma ? 1.0f : 0.0f;
+        float3 particles = float3(shared);
+        if (chroma > 0.001f) {
+            float pr = grainRandom(p, seed + 101u) < density.r ? 1.0f : 0.0f;
+            float pg = grainRandom(p, seed + 211u) < density.g ? 1.0f : 0.0f;
+            float pb = grainRandom(p, seed + 307u) < density.b ? 1.0f : 0.0f;
+            particles = mix(particles, float3(pr, pg, pb), chroma);
+        }
+        coverage += w * particles;
+        total += w;
+    }
+    dst.write(float4(coverage / total, 1.0f), gid);
+}
+
+kernel void grainVertical(texture2d<float, access::sample> src [[texture(0)]],
+                          texture2d<float, access::sample> coverage [[texture(1)]],
+                          texture2d<float, access::write> dst [[texture(2)]],
+                          constant Uniforms &u [[buffer(0)]],
+                          uint2 gid [[thread_position_in_grid]])
+{
+    if (gid.x >= dst.get_width() || gid.y >= dst.get_height()) return;
+
+    float4 center = src.read(gid);
+    float3 base = clamp(center.rgb, 0.0f, 1.0f);
+    float luma = dot(base, LUMA);
+
+    // The slider is the fraction of the datasheet amplitude: full strength
+    // stays just below the granularity of a pushed ISO 400 negative.
+    float strength = clamp(u.grain / 100.0f, 0.0f, 1.0f) * 0.15f;
+
+    float sigma = grainSigma(u.grainSize, u.grainRoughness, dst.get_width(), dst.get_height());
+    int radius = grainRadius(sigma);
+    int maxY = int(dst.get_height()) - 1;
+
+    float3 cov = float3(0.0f);
+    float total = 0.0f;
+    float sumSquares = 0.0f;
+    for (int j = -radius; j <= radius; j++) {
+        int py = clamp(int(gid.y) + j, 0, maxY);
+        float d = float(j);
+        float w = exp(-0.5f * d * d / (sigma * sigma));
+        cov += w * coverage.read(uint2(gid.x, uint(py))).rgb;
+        total += w;
+        sumSquares += w * w;
+    }
+    cov /= total;
+
+    // Normalise the variance so clump size does not change the grain strength:
+    // a dense lattice averages more particles, and without this correction a
+    // large grain size would simply look weaker.
+    float varianceFactor = sumSquares / (total * total);
+    float varianceScale = 0.287f / max(varianceFactor, 1e-4f);
+
+    // Preserve the mean density: only the filtered particle field minus the
+    // clean value is added back.
+    float3 error = (cov - base) * varianceScale;
+
+    float shadowLift = clamp(u.grainShadow / 100.0f, 0.0f, 1.0f);
+    float shadowMask = 1.0f - smoothstep(0.04f, 0.55f, luma);
+    float hiMask = smoothstep(0.62f, 1.0f, luma);
+    float headroom = (1.0f + 1.15f * shadowLift * shadowMask) * (1.0f - 0.62f * hiMask);
+
+    float3 granularity = float3(
+        grainGranularity(0, base.r),
+        grainGranularity(1, base.g),
+        grainGranularity(2, base.b)
+    );
+    granularity = clamp(granularity / 2.7f, 0.6f, 1.6f);
+
+    float3 out = base + error * (strength * headroom) * granularity;
+    dst.write(float4(clamp(out, 0.0f, 1.0f), 1.0f), gid);
 }
 
 // -----------------------------------------------------------------------------
@@ -528,56 +684,8 @@ kernel void processImage(texture2d<float, access::sample> src [[texture(0)]],
     float vig = 1.0f + u.vignette / 100.0f * 0.58f * smoothstep(inner, outer, r);
     enc = max(enc * vig, 0.0f);
 
-    // ---- Film grain ---------------------------------------------------------
-    // Real emulsion grain, not sensor noise: band-limited multi-octave noise
-    // with slowly varying density patches, a tone response that peaks in the
-    // midtones, and monochrome silver density. The spectrum follows darktable's
-    // grain module, which was matched to scans of real negatives.
-    if (u.grain > 0.001f) {
-        float minDim = max(min(float(src.get_width()), float(src.get_height())), 1.0f);
-        // Resolution independent: cycles per short side, like film clumps.
-        float cells = 900.0f / (1.0f + u.grainSize / 100.0f * 9.0f);
-        float2 gp = (float2(gid) + 0.5f) / minDim * cells;
-        float seed = u.grainSeed;
-        float rough = clamp(u.grainRoughness / 100.0f, 0.0f, 1.0f);
-
-        // Three octaves: fine silver specks dominate, coarser layers add body.
-        float fine = value_noise(gp * 1.73f + float2(5.1f, 31.9f), seed + 21.7f) - 0.5f;
-        float mid  = value_noise(gp * 0.94f + float2(23.7f, 11.3f), seed + 8.3f) - 0.5f;
-        float low  = value_noise(gp * 0.49f, seed) - 0.5f;
-        float n = (fine + mid * (0.62f - 0.22f * rough) + low * 0.24f) / 1.6f;
-
-        // Emulsion coverage varies slowly, so some patches are denser than
-        // others. A second, finer field groups individual grains into clumps
-        // (the micro-structure term in spektrafilm's particle model).
-        float clump = value_noise(gp * 0.13f + float2(7.7f, 3.3f), seed + 33.1f);
-        float cluster = value_noise(gp * 0.42f + float2(29.3f, 15.1f), seed + 61.3f);
-        n *= (0.55f + 0.9f * clump) * (0.82f + 0.36f * cluster);
-        n = sign(n) * pow(min(abs(n), 1.0f), 0.8f + rough * 1.4f);
-
-        float l = dot(enc, LUMA);
-        float midMask = 4.0f * l * (1.0f - l);
-        float shMask = 1.0f - smoothstep(0.03f, 0.66f, l);
-        float hiMask = smoothstep(0.62f, 1.0f, l);
-        float amp = (u.grain / 100.0f) * 0.32f
-                  * (0.15f + 0.85f * midMask + 1.2f * (u.grainShadow / 100.0f) * shMask)
-                  * (1.0f - 0.45f * hiMask);
-        enc += float3(n * amp);
-
-        // Dye-cloud colour grain. Real colour film has three layers with
-        // different particle sizes (blue clouds are the coarsest), so each
-        // channel gets its own scale instead of shared RGB static.
-        float chroma = clamp(u.grainChroma / 100.0f, 0.0f, 1.0f);
-        if (chroma > 0.001f) {
-            float cr = value_noise(gp * 0.30f + float2(3.1f, 17.3f), seed + 41.0f) - 0.5f;
-            float cg = value_noise(gp * 0.38f + float2(7.3f, 5.9f), seed + 55.0f) - 0.5f;
-            float cb = value_noise(gp * 0.22f + float2(9.7f, 27.1f), seed + 69.0f) - 0.5f;
-            float cAmp = amp * chroma * 0.55f;
-            enc.r += cr * cAmp;
-            enc.g += cg * cAmp * 0.55f;
-            enc.b += cb * cAmp * 0.85f;
-        }
-    }
+    // Grain runs as a separate pass (grainHorizontal/grainVertical) so this
+    // pass stays free of neighbourhood sampling.
 
     // ---- Dither -------------------------------------------------------------
     float d = (hash21(float2(gid) + u.ditherSeed) - 0.5f) / 255.0f;

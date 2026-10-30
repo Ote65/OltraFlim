@@ -229,8 +229,9 @@ loosePhotos / folderPhotos
 CanvasMTKView.draw
  → Renderer.draw(in:)
  → 若 needsProcess：encodeProcess（source → processed）
- → 直方图 pass（可选）
- → display pass：processed 或 compare 分割原图
+ → 若 grain > 0：encodeGrain（processed → grainTexture，单独的 compute pass）
+ → 直方图 pass（可选，读最终纹理）
+ → display pass：grainTexture / processed 或 compare 分割原图
  → MTKView drawable
 ```
 
@@ -260,8 +261,13 @@ CanvasMTKView.draw
 13. 颜色通透（高光/阴影互补色 delta）
 14. 褪色
 15. 暗角（amount / midpoint / roundness / feather / center）
-16. 颗粒（多八度光谱、密度块、中间调响应、彩粒、暗部）
-17. 抖动
+16. 抖动
+
+颗粒不在 `processImage` 里：`grainHorizontal` 把布尔粒子场按行过滤到
+`grainScratch`，`grainVertical` 再按列过滤并与干净图像相减，之后按颗粒度
+曲线缩放。tap 间距固定 1 px（保证相邻像素共享粒子格点），半径 ±2σ 且最多
+±9 px；垂直 pass 用 `Σw²` 归一化方差，保证 `grainSize` 不改变颗粒强度。
+`grain = 0` 时两个 pass 完全跳过。
 
 ### 6.3 导出路径
 
@@ -271,15 +277,21 @@ CanvasMTKView.draw
   `longEdge` 在 CIImage 阶段缩放，避免丢失线性/超白数据。
 - 直接创建全分辨率 destination/bloom 纹理。
 - **单独构建 `exportCurveTexture`**；不要复用预览的共享 `curveTexture`。
-- `previewScale = 1`，颗粒尺寸按全分辨率计算。
+- `previewScale = 1`，颗粒尺寸按全分辨率（短边 / 1600）计算。
+- 颗粒 pass 是 `grainHorizontal` + `grainVertical` 两段；有颗粒时
+  `renderFull` 先写入一张 `rgba8Unorm` staging 纹理 + 一张 scratch，
+  再写最终 destination；无颗粒时直接写 destination，读回路径不变。
 - 导出通过 `CGImageDestination` 写 JPEG/PNG/TIFF/HEIC（`ExportSheet`）。
 
 ### 6.4 关键已知陷阱（改之前先读）
 
 - `grainSeed` 必须是 **小数值**（当前 `abs(hash)%4096/100`）；直接用
   `hashValue` 会因浮点精度丢失让噪声变成平坦色偏。
-- 颗粒按**短边归一化**（cycles per short side），不要退回按预览像素计尺寸；
+- 颗粒按**短边归一化**（`sigma ∝ 短边 / 1600`），不要退回按预览像素计尺寸；
   否则预览与全分辨率导出的颗粒粗细不一致。
+- `grainHorizontal` 的粒子随机数按**像素格点**取值（`grainRandom(int2 p, seed)`），
+  tap 必须逐像素（间距 1 px）。若 tap 间距随 sigma 增大（如按 σ/2 采样），
+  相邻像素落在不同的粒子子格上，相关度在 1 px 处掉到 0，颗粒会退化成静电噪点。
 - `whites` 在胶片 LUT **之后**的显示空间处理；`highlights` 同样必须在
   LUT 之后，放回 pre-LUT 会被打印 shoulder 压成几乎无效（1.3 实测 4/255）。
 - Bloom 与 halation 共用高光提取纹理：alpha 存**未染色强度**，模糊 pass

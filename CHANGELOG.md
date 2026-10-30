@@ -23,6 +23,19 @@ All notable changes to OltraFlim. Dates are project-local.
   per-channel `DOMAIN_MIN/MAX` are preserved instead of clipped.
 - ACEScc encode/decode now follows S-2014-003 (2⁻¹⁶ toe with the 0.5 factor) in
   both `Shaders.metal` and `Tools/build_luts.py`.
+- **Grain is now a physical particle model.** The three-octave value noise in
+  `processImage` was replaced by `grainHorizontal` + `grainVertical`: each
+  developer grain is a Boolean sample on a shared pixel lattice, thresholded by
+  the local density, then filtered by a separable Gaussian window with
+  one-pixel tap spacing. Filtered coverage is compared with the clean image, so
+  the mean tone is preserved; a Σw² normalisation keeps `Grain size` from
+  changing the grain strength, and the amplitude follows per-layer RMS
+  granularity curves (blue is the coarsest). `Grain roughness` widens the
+  clump, `Grain chroma` blends the shared silver field with independent
+  per-layer fields, and `Grain shadow` lifts the toe. The passes are skipped
+  entirely at grain 0, so existing edits render exactly as before.
+  Algorithm reference: IPOL 2017 and AlcedoStudio `drt_neighbor.metal`
+  (GPLv3, studied only — the implementation is original Metal code).
 - New **Auto exposure** switch in both settings surfaces (on by default, as in
   spektrafilm). Turning it off keeps the RAW's absolute exposure for edits that
   were graded before this change.
