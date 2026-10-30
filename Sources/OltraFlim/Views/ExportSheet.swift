@@ -10,7 +10,7 @@ struct ExportSheet: View {
             HStack {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(T("导出", "Export"))
-                        .font(.system(size: 18, weight: .medium))
+                        .font(DS.font(18, .medium))
                         .foregroundStyle(DS.textPrimary)
                     Text(T("基于 \(model.currentImportedLUT?.name ?? model.currentStock?.name ?? "OltraFlim")", "Developed with \(model.currentImportedLUT?.name ?? model.currentStock?.name ?? "OltraFlim")"))
                         .font(DS.label(10))
@@ -21,7 +21,7 @@ struct ExportSheet: View {
                     dismiss()
                 } label: {
                     Image(systemName: "xmark")
-                        .font(.system(size: 10, weight: .semibold))
+                        .font(DS.font(10, .semibold))
                         .foregroundStyle(DS.textTertiary)
                         .frame(width: 24, height: 24)
                         .background(Circle().fill(DS.surface2))
@@ -79,7 +79,7 @@ struct ExportSheet: View {
             if let photo = model.currentPhoto {
                 HStack(spacing: 6) {
                     Image(systemName: "info.circle")
-                        .font(.system(size: 9))
+                        .font(DS.font(9))
                         .foregroundStyle(DS.textQuaternary)
                     Text("\(Int(photo.pixelSize.width)) × \(Int(photo.pixelSize.height)) px · \(photo.name)")
                         .font(DS.label(9))
@@ -93,7 +93,7 @@ struct ExportSheet: View {
                 Spacer()
                 Button(T("取消", "Cancel")) { dismiss() }
                     .buttonStyle(.plain)
-                    .font(.system(size: 11, weight: .medium))
+                    .font(DS.font(11, .medium))
                     .foregroundStyle(DS.textSecondary)
                     .padding(.horizontal, 12)
                     .frame(height: 30)
@@ -114,7 +114,7 @@ struct ExportSheet: View {
                     }
                 } label: {
                     Text(T("选择保存位置…", "Choose destination…"))
-                        .font(.system(size: 11, weight: .medium))
+                        .font(DS.font(11, .medium))
                         .foregroundStyle(Color(hex: 0x14120E))
                         .padding(.horizontal, 14)
                         .frame(height: 30)
@@ -147,7 +147,7 @@ struct FieldLabel: View {
     init(_ text: String) { self.text = text }
     var body: some View {
         Text(text)
-            .font(.system(size: 8.5, weight: .medium))
+            .font(DS.font(8.5, .medium))
             .tracking(1.2)
             .foregroundStyle(DS.textTertiary)
             .padding(.bottom, 7)
@@ -173,7 +173,7 @@ struct ChoiceChip: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 10, weight: selected ? .medium : .regular))
+                .font(DS.font(10, selected ? .medium : .regular))
                 .foregroundStyle(selected ? DS.accent : (hovering ? DS.textSecondary : DS.textTertiary))
                 .padding(.horizontal, 9)
                 .frame(height: 26)

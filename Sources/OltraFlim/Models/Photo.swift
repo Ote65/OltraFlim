@@ -8,6 +8,8 @@ struct Adjustments: Codable, Equatable {
     var shadows: Double = 0
     var whites: Double = 0
     var blacks: Double = 0
+    var midtones: Double = 0          // -100…+100, 18% grey band
+    var highlightRolloff: Double = 0  // 0…100, film shoulder above white
     var temperature: Double = 0       // -100…+100
     var tint: Double = 0              // -100…+100
     var vibrance: Double = 0
@@ -23,13 +25,20 @@ struct Adjustments: Codable, Equatable {
     var sharpen: Double = 0
     var grain: Double = 0
     var grainSize: Double = 38
+    var grainRoughness: Double = 50
     var grainChroma: Double = 0
     var grainShadow: Double = 0
     var halation: Double = 0
     var halationThreshold: Double = 55
     var halationRadius: Double = 50
     var halationWarmth: Double = 75
+    var bloom: Double = 0
     var vignette: Double = 0
+    var vignetteMidpoint: Double = 50
+    var vignetteRoundness: Double = 0
+    var vignetteFeather: Double = 50
+    var vignetteCenterX: Double = 0
+    var vignetteCenterY: Double = 0
     var fade: Double = 0
     var tonalTransparency: Double = 0
     var colorTransparency: Double = 0
@@ -40,12 +49,15 @@ struct Adjustments: Codable, Equatable {
 
     enum CodingKeys: String, CodingKey {
         case exposure, contrast, highlights, shadows, whites, blacks
+        case midtones, highlightRolloff
         case temperature, tint, vibrance, saturation
         case hueShift, colorDensity, skinSaturation, greenSaturation, blueSaturation
         case highlightWarmth, shadowCoolness
-        case clarity, sharpen, grain, grainSize, grainChroma, grainShadow
-        case halation, halationThreshold, halationRadius, halationWarmth
-        case vignette, fade, tonalTransparency, colorTransparency
+        case clarity, sharpen, grain, grainSize, grainRoughness, grainChroma, grainShadow
+        case halation, halationThreshold, halationRadius, halationWarmth, bloom
+        case vignette, vignetteMidpoint, vignetteRoundness, vignetteFeather
+        case vignetteCenterX, vignetteCenterY
+        case fade, tonalTransparency, colorTransparency
     }
 
     init(from decoder: Decoder) throws {
@@ -56,6 +68,8 @@ struct Adjustments: Codable, Equatable {
         shadows = try c.decodeIfPresent(Double.self, forKey: .shadows) ?? 0
         whites = try c.decodeIfPresent(Double.self, forKey: .whites) ?? 0
         blacks = try c.decodeIfPresent(Double.self, forKey: .blacks) ?? 0
+        midtones = try c.decodeIfPresent(Double.self, forKey: .midtones) ?? 0
+        highlightRolloff = try c.decodeIfPresent(Double.self, forKey: .highlightRolloff) ?? 0
         temperature = try c.decodeIfPresent(Double.self, forKey: .temperature) ?? 0
         tint = try c.decodeIfPresent(Double.self, forKey: .tint) ?? 0
         vibrance = try c.decodeIfPresent(Double.self, forKey: .vibrance) ?? 0
@@ -71,13 +85,20 @@ struct Adjustments: Codable, Equatable {
         sharpen = try c.decodeIfPresent(Double.self, forKey: .sharpen) ?? 0
         grain = try c.decodeIfPresent(Double.self, forKey: .grain) ?? 0
         grainSize = try c.decodeIfPresent(Double.self, forKey: .grainSize) ?? 38
+        grainRoughness = try c.decodeIfPresent(Double.self, forKey: .grainRoughness) ?? 50
         grainChroma = try c.decodeIfPresent(Double.self, forKey: .grainChroma) ?? 0
         grainShadow = try c.decodeIfPresent(Double.self, forKey: .grainShadow) ?? 0
         halation = try c.decodeIfPresent(Double.self, forKey: .halation) ?? 0
         halationThreshold = try c.decodeIfPresent(Double.self, forKey: .halationThreshold) ?? 55
         halationRadius = try c.decodeIfPresent(Double.self, forKey: .halationRadius) ?? 50
         halationWarmth = try c.decodeIfPresent(Double.self, forKey: .halationWarmth) ?? 75
+        bloom = try c.decodeIfPresent(Double.self, forKey: .bloom) ?? 0
         vignette = try c.decodeIfPresent(Double.self, forKey: .vignette) ?? 0
+        vignetteMidpoint = try c.decodeIfPresent(Double.self, forKey: .vignetteMidpoint) ?? 50
+        vignetteRoundness = try c.decodeIfPresent(Double.self, forKey: .vignetteRoundness) ?? 0
+        vignetteFeather = try c.decodeIfPresent(Double.self, forKey: .vignetteFeather) ?? 50
+        vignetteCenterX = try c.decodeIfPresent(Double.self, forKey: .vignetteCenterX) ?? 0
+        vignetteCenterY = try c.decodeIfPresent(Double.self, forKey: .vignetteCenterY) ?? 0
         fade = try c.decodeIfPresent(Double.self, forKey: .fade) ?? 0
         tonalTransparency = try c.decodeIfPresent(Double.self, forKey: .tonalTransparency) ?? 0
         colorTransparency = try c.decodeIfPresent(Double.self, forKey: .colorTransparency) ?? 0
@@ -95,6 +116,8 @@ struct Adjustments: Codable, Equatable {
         if shadows != 0 { count += 1 }
         if whites != 0 { count += 1 }
         if blacks != 0 { count += 1 }
+        if midtones != 0 { count += 1 }
+        if highlightRolloff != 0 { count += 1 }
         if temperature != 0 { count += 1 }
         if tint != 0 { count += 1 }
         if vibrance != 0 { count += 1 }
@@ -110,6 +133,7 @@ struct Adjustments: Codable, Equatable {
         if sharpen != 0 { count += 1 }
         if grain != 0 { count += 1 }
         if halation != 0 { count += 1 }
+        if bloom != 0 { count += 1 }
         if vignette != 0 { count += 1 }
         if fade != 0 { count += 1 }
         if tonalTransparency != 0 { count += 1 }

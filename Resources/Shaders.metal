@@ -62,6 +62,15 @@ struct Uniforms {
     float blueSaturation;
     float highlightWarmth;
     float shadowCoolness;
+    float midtones;
+    float highlightRolloff;
+    float bloom;
+    float grainRoughness;
+    float vignetteMidpoint;
+    float vignetteRoundness;
+    float vignetteFeather;
+    float vignetteCenterX;
+    float vignetteCenterY;
 };
 
 struct DisplayUniforms {
@@ -201,7 +210,8 @@ kernel void bloomExtract(texture2d<float, access::sample> src [[texture(0)]],
     // Halation is warm: the red layer of the negative scatters furthest.
     float warm = clamp(u.halationWarmth / 100.0f, 0.0f, 1.0f);
     float3 tint = mix(float3(1.0f, 1.0f, 1.0f), float3(1.0f, 0.30f, 0.16f), warm);
-    dst.write(float4(over * tint, 1.0f), gid);
+    // Alpha carries the untinted intensity so bloom can reuse the same pass.
+    dst.write(float4(over * tint, over), gid);
 }
 
 kernel void blurHorizontal(texture2d<float, access::sample> src [[texture(0)]],
@@ -213,15 +223,15 @@ kernel void blurHorizontal(texture2d<float, access::sample> src [[texture(0)]],
     constexpr sampler s(filter::linear, address::clamp_to_edge);
     float2 uv = (float2(gid) + 0.5f) / float2(dst.get_width(), dst.get_height());
     float radius = (2.0f + u.halationRadius * 0.22f) / float(dst.get_width());
-    float3 acc = float3(0.0f);
+    float4 acc = float4(0.0f);
     float weights[5] = {0.227f, 0.194f, 0.121f, 0.054f, 0.016f};
     for (int i = 1; i <= 4; i++) {
         float o = radius * float(i);
-        acc += src.sample(s, uv - float2(o, 0.0f)).rgb * weights[i];
-        acc += src.sample(s, uv + float2(o, 0.0f)).rgb * weights[i];
+        acc += src.sample(s, uv - float2(o, 0.0f)) * weights[i];
+        acc += src.sample(s, uv + float2(o, 0.0f)) * weights[i];
     }
-    acc += src.sample(s, uv).rgb * 0.227f;
-    dst.write(float4(acc, 1.0f), gid);
+    acc += src.sample(s, uv) * 0.227f;
+    dst.write(acc, gid);
 }
 
 kernel void blurVertical(texture2d<float, access::sample> src [[texture(0)]],
@@ -233,15 +243,15 @@ kernel void blurVertical(texture2d<float, access::sample> src [[texture(0)]],
     constexpr sampler s(filter::linear, address::clamp_to_edge);
     float2 uv = (float2(gid) + 0.5f) / float2(dst.get_width(), dst.get_height());
     float radius = (2.0f + u.halationRadius * 0.22f) / float(dst.get_height());
-    float3 acc = float3(0.0f);
+    float4 acc = float4(0.0f);
     float weights[5] = {0.227f, 0.194f, 0.121f, 0.054f, 0.016f};
     for (int i = 1; i <= 4; i++) {
         float o = radius * float(i);
-        acc += src.sample(s, uv - float2(0.0f, o)).rgb * weights[i];
-        acc += src.sample(s, uv + float2(0.0f, o)).rgb * weights[i];
+        acc += src.sample(s, uv - float2(0.0f, o)) * weights[i];
+        acc += src.sample(s, uv + float2(0.0f, o)) * weights[i];
     }
-    acc += src.sample(s, uv).rgb * 0.227f;
-    dst.write(float4(acc, 1.0f), gid);
+    acc += src.sample(s, uv) * 0.227f;
+    dst.write(acc, gid);
 }
 
 // -----------------------------------------------------------------------------
@@ -296,12 +306,14 @@ kernel void processImage(texture2d<float, access::sample> src [[texture(0)]],
     float slope = exp2(u.contrast / 100.0f * 0.85f);
     float toneLog = pivot + (logL - pivot) * slope;
 
-    float hiMask = smoothstep(0.25f, 1.5f, luma);
     float shMask = 1.0f - smoothstep(0.006f, 0.30f, luma);
     float bMask = 1.0f - smoothstep(0.008f, 0.09f, luma);
-    toneLog += u.highlights / 100.0f * 2.4f * hiMask;
     toneLog += u.shadows / 100.0f * 2.0f * shMask;
     toneLog += u.blacks / 100.0f * 1.7f * bMask;
+
+    // Midtones ride on a soft band around 18% grey so the extremes stay put.
+    float midX = (toneLog - pivot) / 1.25f;
+    toneLog += u.midtones / 100.0f * 0.85f * exp(-midX * midX);
 
     float scale = exp2(toneLog - logL);
     linear *= scale;
@@ -346,9 +358,14 @@ kernel void processImage(texture2d<float, access::sample> src [[texture(0)]],
     }
     linear = max(linear, 0.0f);
 
-    // ---- Halation -----------------------------------------------------------
+    // ---- Halation / bloom ---------------------------------------------------
+    float4 glow = bloom.sample(s, uv);
     if (u.halation > 0.001f) {
-        linear += bloom.sample(s, uv).rgb * (u.halation / 100.0f) * 1.35f;
+        linear += glow.rgb * (u.halation / 100.0f) * 1.35f;
+    }
+    if (u.bloom > 0.001f) {
+        // Alpha is the untinted highlight energy: neutral optical diffusion.
+        linear += float3(glow.a) * (u.bloom / 100.0f) * 0.42f;
     }
 
     // ---- Film LUT or imported display LUT --------------------------------
@@ -379,6 +396,31 @@ kernel void processImage(texture2d<float, access::sample> src [[texture(0)]],
         enc = clamp(enc + float3(u.whites / 100.0f * 0.20f * mask), 0.0f, 1.0f);
     }
 
+    // ---- Highlights: display-referred recovery -----------------------------
+    // Scene-linear lifting is crushed by the print shoulder in the film LUT
+    // (measured: ±100 moved the image by ~4/255). Work on the printed
+    // luminance instead, where the slider has the range photographers expect.
+    if (u.highlights != 0.0f) {
+        float l = dot(enc, LUMA);
+        float mask = smoothstep(0.22f, 0.92f, l);
+        float gamma = clamp(1.0f - u.highlights / 100.0f * mask * 0.85f, 0.25f, 3.0f);
+        float shaped = pow(max(l, 1e-4f), gamma);
+        enc = clamp(enc * (shaped / max(l, 1e-4f)), 0.0f, 1.0f);
+    }
+
+    // ---- Highlight rolloff: film shoulder in the print ---------------------
+    // Compresses the top end toward white: highlights lift and flatten instead
+    // of clipping, which is what a print shoulder does to a negative.
+    if (u.highlightRolloff > 0.001f) {
+        float l = dot(enc, LUMA);
+        if (l > 0.52f) {
+            float x = clamp((l - 0.52f) / 0.48f, 0.0f, 1.0f);
+            float k = 1.0f + u.highlightRolloff / 100.0f * 1.8f;
+            float rolled = 0.52f + 0.48f * (1.0f - pow(1.0f - x, k));
+            enc = clamp(enc * (rolled / max(l, 1e-4f)), 0.0f, 1.0f);
+        }
+    }
+
     // ---- Tone curves -------------------------------------------------------
     float3 curved = float3(
         curves.sample(curveSampler, float2(clamp(enc.r, 0.0f, 1.0f), 0.5f)).r,
@@ -400,7 +442,7 @@ kernel void processImage(texture2d<float, access::sample> src [[texture(0)]],
         float hueDeg = hsv.x * 360.0f;
         float satMul = 1.0f
             + (u.skinSaturation / 100.0f) * 0.55f * hueWeight(hueDeg, 32.0f, 55.0f)
-            + (u.greenSaturation / 100.0f) * 0.55f * hueWeight(hueDeg, 105.0f, 70.0f)
+            + (u.greenSaturation / 100.0f) * 0.75f * hueWeight(hueDeg, 105.0f, 85.0f)
             + (u.blueSaturation / 100.0f) * 0.55f * hueWeight(hueDeg, 225.0f, 60.0f)
             + (u.colorDensity / 100.0f) * 0.35f;
         hsv.y = clamp(hsv.y * satMul, 0.0f, 1.0f);
@@ -442,33 +484,71 @@ kernel void processImage(texture2d<float, access::sample> src [[texture(0)]],
     }
 
     // ---- Vignette -----------------------------------------------------------
-    float2 nuv = uv - 0.5f;
-    float r = length(nuv) * 1.4142f;
-    float vig = 1.0f + u.vignette / 100.0f * 0.58f * smoothstep(0.30f, 0.98f, r);
+    // Lightroom-style shaping: amount, midpoint, roundness, feather and a
+    // movable optical centre.
+    float2 vc = float2(0.5f + u.vignetteCenterX / 100.0f * 0.25f,
+                       0.5f + u.vignetteCenterY / 100.0f * 0.25f);
+    float2 vp = uv - vc;
+    float aspect = u.imageWidth / max(u.imageHeight, 1.0f);
+    float roundness = clamp(u.vignetteRoundness / 100.0f, -1.0f, 1.0f);
+    float wx = 1.0f + max(roundness, 0.0f) * (aspect - 1.0f);
+    float wy = 1.0f + max(-roundness, 0.0f) * 0.6f;
+    float r = length(float2(vp.x * wx, vp.y * wy)) / 0.7071f;
+    float midpoint = clamp(u.vignetteMidpoint / 100.0f, 0.0f, 1.0f);
+    float feather = clamp(u.vignetteFeather / 100.0f, 0.0f, 1.0f);
+    float outer = 0.62f + midpoint * 0.63f;
+    float inner = max(0.0f, outer - (0.06f + feather * 0.94f));
+    float vig = 1.0f + u.vignette / 100.0f * 0.58f * smoothstep(inner, outer, r);
     enc = max(enc * vig, 0.0f);
 
-    // ---- Grain --------------------------------------------------------------
+    // ---- Film grain ---------------------------------------------------------
+    // Real emulsion grain, not sensor noise: band-limited multi-octave noise
+    // with slowly varying density patches, a tone response that peaks in the
+    // midtones, and monochrome silver density. The spectrum follows darktable's
+    // grain module, which was matched to scans of real negatives.
     if (u.grain > 0.001f) {
-        float sizePx = 3.0f + u.grainSize / 100.0f * 15.0f;
-        float2 gp = float2(gid) * u.previewScale / sizePx;
-        float n1 = value_noise(gp, u.grainSeed) - 0.5f;
-        float n2 = value_noise(gp * 2.05f + float2(19.1f, 7.7f), u.grainSeed + 11.3f) - 0.5f;
-        float n3 = value_noise(gp * 4.1f + float2(3.4f, 31.2f), u.grainSeed + 27.1f) - 0.5f;
-        float n = n1 * 0.62f + n2 * 0.28f + n3 * 0.10f;
-        float encLuma = dot(enc, LUMA);
-        float baseWeight = 0.42f + 0.58f * (1.0f - smoothstep(0.0f, 0.85f, abs(encLuma - 0.48f) * 1.8f));
-        float shadowWeight = (u.grainShadow / 100.0f) * (1.0f - smoothstep(0.05f, 0.55f, encLuma)) * 0.9f;
-        float weight = baseWeight + shadowWeight;
-        float amp = (u.grain / 100.0f) * 0.28f * weight;
+        float minDim = max(min(float(src.get_width()), float(src.get_height())), 1.0f);
+        // Resolution independent: cycles per short side, like film clumps.
+        float cells = 900.0f / (1.0f + u.grainSize / 100.0f * 9.0f);
+        float2 gp = (float2(gid) + 0.5f) / minDim * cells;
+        float seed = u.grainSeed;
+        float rough = clamp(u.grainRoughness / 100.0f, 0.0f, 1.0f);
+
+        // Three octaves: fine silver specks dominate, coarser layers add body.
+        float fine = value_noise(gp * 1.73f + float2(5.1f, 31.9f), seed + 21.7f) - 0.5f;
+        float mid  = value_noise(gp * 0.94f + float2(23.7f, 11.3f), seed + 8.3f) - 0.5f;
+        float low  = value_noise(gp * 0.49f, seed) - 0.5f;
+        float n = (fine + mid * (0.62f - 0.22f * rough) + low * 0.24f) / 1.6f;
+
+        // Emulsion coverage varies slowly, so some patches are denser than
+        // others. A second, finer field groups individual grains into clumps
+        // (the micro-structure term in spektrafilm's particle model).
+        float clump = value_noise(gp * 0.13f + float2(7.7f, 3.3f), seed + 33.1f);
+        float cluster = value_noise(gp * 0.42f + float2(29.3f, 15.1f), seed + 61.3f);
+        n *= (0.55f + 0.9f * clump) * (0.82f + 0.36f * cluster);
+        n = sign(n) * pow(min(abs(n), 1.0f), 0.8f + rough * 1.4f);
+
+        float l = dot(enc, LUMA);
+        float midMask = 4.0f * l * (1.0f - l);
+        float shMask = 1.0f - smoothstep(0.03f, 0.66f, l);
+        float hiMask = smoothstep(0.62f, 1.0f, l);
+        float amp = (u.grain / 100.0f) * 0.32f
+                  * (0.15f + 0.85f * midMask + 1.2f * (u.grainShadow / 100.0f) * shMask)
+                  * (1.0f - 0.45f * hiMask);
         enc += float3(n * amp);
+
+        // Dye-cloud colour grain. Real colour film has three layers with
+        // different particle sizes (blue clouds are the coarsest), so each
+        // channel gets its own scale instead of shared RGB static.
         float chroma = clamp(u.grainChroma / 100.0f, 0.0f, 1.0f);
         if (chroma > 0.001f) {
-            float nr = value_noise(gp + 5.1f, u.grainSeed + 41.0f) - 0.5f;
-            float ng = value_noise(gp + 7.3f, u.grainSeed + 49.0f) - 0.5f;
-            float nb = value_noise(gp + 9.7f, u.grainSeed + 57.0f) - 0.5f;
-            enc.r += nr * amp * chroma * 0.38f;
-            enc.g += ng * amp * chroma * 0.20f;
-            enc.b += nb * amp * chroma * 0.38f;
+            float cr = value_noise(gp * 0.30f + float2(3.1f, 17.3f), seed + 41.0f) - 0.5f;
+            float cg = value_noise(gp * 0.38f + float2(7.3f, 5.9f), seed + 55.0f) - 0.5f;
+            float cb = value_noise(gp * 0.22f + float2(9.7f, 27.1f), seed + 69.0f) - 0.5f;
+            float cAmp = amp * chroma * 0.55f;
+            enc.r += cr * cAmp;
+            enc.g += cg * cAmp * 0.55f;
+            enc.b += cb * cAmp * 0.85f;
         }
     }
 

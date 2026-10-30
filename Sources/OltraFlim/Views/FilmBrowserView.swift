@@ -1,11 +1,22 @@
 import SwiftUI
 import AppKit
 
+enum FilmBrowserLayout: String {
+    case grid
+    case list
+}
+
 struct FilmBrowserView: View {
     @Environment(AppModel.self) private var model
+    @AppStorage("filmBrowserLayout") private var layoutRaw = FilmBrowserLayout.grid.rawValue
+
+    private var layout: FilmBrowserLayout {
+        FilmBrowserLayout(rawValue: layoutRaw) ?? .grid
+    }
 
     var body: some View {
         VStack(spacing: 0) {
+            photoInfoPanel
             header
             searchField
                 .padding(.horizontal, 14)
@@ -18,12 +29,16 @@ struct FilmBrowserView: View {
                     .padding(.horizontal, 14)
                     .padding(.top, 8)
             }
+            Rectangle()
+                .fill(DS.hairline)
+                .frame(height: 1)
+                .padding(.top, 10)
             ScrollViewReader { proxy in
                 ScrollView {
                     Color.clear.frame(height: 0).id("libraryTop")
                     content
                         .padding(.horizontal, 14)
-                        .padding(.top, 10)
+                        .padding(.top, 18)
                         .padding(.bottom, 16)
                         .id(model.libraryMode)
                         .transition(.asymmetric(
@@ -33,6 +48,7 @@ struct FilmBrowserView: View {
                 }
                 .scrollIndicators(.never)
                 .animation(DS.snappy, value: model.libraryMode)
+                .animation(DS.snappy, value: layoutRaw)
                 .onChange(of: model.libraryMode) { _, _ in
                     withAnimation(DS.snappy) {
                         proxy.scrollTo("libraryTop", anchor: .top)
@@ -61,7 +77,7 @@ struct FilmBrowserView: View {
             if let lut = model.currentImportedLUT {
                 HStack(spacing: 6) {
                     Image(systemName: "square.stack.3d.up")
-                        .font(.system(size: 9, weight: .medium))
+                        .font(DS.font(9, .medium))
                         .foregroundStyle(DS.accent)
                     Text(T("当前使用 LUT：\(lut.name)", "LUT active: \(lut.name)"))
                         .font(DS.label(9))
@@ -72,7 +88,7 @@ struct FilmBrowserView: View {
                         model.libraryMode = .luts
                     }
                     .buttonStyle(.plain)
-                    .font(.system(size: 9, weight: .medium))
+                    .font(DS.font(9, .medium))
                     .foregroundStyle(DS.accent)
                 }
                 .padding(.horizontal, 8)
@@ -89,21 +105,43 @@ struct FilmBrowserView: View {
             if model.filteredStocks.isEmpty {
                 EmptyFilmResults()
                     .padding(.top, 54)
+            } else if layout == .grid {
+                filmGrid
+                    .transition(.opacity)
             } else {
-                LazyVGrid(columns: gridColumns, spacing: 8) {
-                    ForEach(model.filteredStocks) { stock in
-                        FilmCard(
-                            stock: stock,
-                            selected: stock.id == model.currentStockID && model.currentImportedLUT == nil,
-                            favorite: model.isFavorite(stock),
-                            image: model.thumbnail(for: stock)
-                        )
-                        .id(stock.id)
-                    }
-                }
+                filmList
+                    .transition(.opacity)
             }
         } else {
             lutContent
+        }
+    }
+
+    private var filmGrid: some View {
+        LazyVGrid(columns: gridColumns, spacing: 8) {
+            ForEach(model.filteredStocks) { stock in
+                FilmCard(
+                    stock: stock,
+                    selected: stock.id == model.currentStockID && model.currentImportedLUT == nil,
+                    favorite: model.isFavorite(stock),
+                    image: model.thumbnail(for: stock)
+                )
+                .id(stock.id)
+            }
+        }
+    }
+
+    private var filmList: some View {
+        LazyVStack(spacing: 2) {
+            ForEach(model.filteredStocks) { stock in
+                FilmRow(
+                    stock: stock,
+                    selected: stock.id == model.currentStockID && model.currentImportedLUT == nil,
+                    favorite: model.isFavorite(stock),
+                    image: model.thumbnail(for: stock)
+                )
+                .id(stock.id)
+            }
         }
     }
 
@@ -116,10 +154,10 @@ struct FilmBrowserView: View {
                 } label: {
                     HStack(spacing: 7) {
                         Image(systemName: "arrow.uturn.backward")
-                            .font(.system(size: 9, weight: .semibold))
+                            .font(DS.font(9, .semibold))
                             .foregroundStyle(DS.accent)
                         Text(T("移除当前 LUT，回到胶片显影", "Remove LUT and return to film"))
-                            .font(.system(size: 10, weight: .medium))
+                            .font(DS.font(10, .medium))
                             .foregroundStyle(DS.textSecondary)
                         Spacer(minLength: 0)
                     }
@@ -143,7 +181,7 @@ struct FilmBrowserView: View {
                 } else {
                     EmptyLUTResults()
                 }
-            } else {
+            } else if layout == .grid {
                 LazyVGrid(columns: gridColumns, spacing: 8) {
                     ForEach(model.filteredLUTs) { lut in
                         ImportedLUTCard(
@@ -154,6 +192,19 @@ struct FilmBrowserView: View {
                     }
                     ImportLUTTile()
                 }
+                .transition(.opacity)
+            } else {
+                LazyVStack(spacing: 2) {
+                    ForEach(model.filteredLUTs) { lut in
+                        ImportedLUTRow(
+                            lut: lut,
+                            selected: lut.id == model.currentImportedLUT?.id,
+                            image: model.importedThumbs[lut.id]
+                        )
+                    }
+                    ImportLUTRowTile()
+                }
+                .transition(.opacity)
             }
         }
     }
@@ -179,12 +230,13 @@ struct FilmBrowserView: View {
                 }
             }
             Spacer(minLength: 4)
+            layoutToggle
             if model.libraryMode == .films {
                 Button {
                     model.favoritesOnly.toggle()
                 } label: {
                     Image(systemName: model.favoritesOnly ? "star.fill" : "star")
-                        .font(.system(size: 10.5, weight: .medium))
+                        .font(DS.font(10.5, .medium))
                         .foregroundStyle(model.favoritesOnly ? DS.accent : DS.textTertiary)
                         .frame(width: 24, height: 24)
                         .background(
@@ -202,9 +254,9 @@ struct FilmBrowserView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "plus")
-                            .font(.system(size: 8.5, weight: .semibold))
+                            .font(DS.font(8.5, .semibold))
                         Text(T("导入", "Import"))
-                            .font(.system(size: 9.5, weight: .medium))
+                            .font(DS.font(9.5, .medium))
                     }
                     .foregroundStyle(DS.accent)
                     .padding(.horizontal, 7)
@@ -225,6 +277,107 @@ struct FilmBrowserView: View {
         }
         .padding(.horizontal, 14)
         .frame(height: 50)
+    }
+
+    private var photoInfoPanel: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            if let photo = model.currentPhoto {
+                HStack(spacing: 6) {
+                    Text(photo.name)
+                        .font(DS.font(12, .medium))
+                        .foregroundStyle(DS.textPrimary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    Spacer(minLength: 4)
+                    if photo.pixelSize.width > 0 {
+                        Text("\(Int(photo.pixelSize.width)) × \(Int(photo.pixelSize.height))")
+                            .font(DS.mono(8))
+                            .foregroundStyle(DS.textQuaternary)
+                            .lineLimit(1)
+                    }
+                }
+                HStack(spacing: 5) {
+                    if let lut = model.currentImportedLUT {
+                        Text(lut.name)
+                            .font(DS.font(10))
+                            .foregroundStyle(DS.textSecondary)
+                            .lineLimit(1)
+                        Text("LUT")
+                            .font(DS.font(7.5, .semibold))
+                            .tracking(0.8)
+                            .foregroundStyle(DS.accent.opacity(0.9))
+                    } else if let stock = model.currentStock {
+                        Text(stock.name)
+                            .font(DS.font(10))
+                            .foregroundStyle(DS.textSecondary)
+                            .lineLimit(1)
+                        Text(stock.brand.uppercased())
+                            .font(DS.font(7.5, .medium))
+                            .tracking(0.8)
+                            .foregroundStyle(DS.accent.opacity(0.9))
+                        if let look = model.currentLook {
+                            Text("·")
+                                .foregroundStyle(DS.textQuaternary)
+                            Text(look.localizedLabel)
+                                .font(DS.font(9))
+                                .foregroundStyle(DS.textTertiary)
+                                .lineLimit(1)
+                        }
+                    } else {
+                        Text(T("未选择胶片", "No film selected"))
+                            .font(DS.font(9))
+                            .foregroundStyle(DS.textTertiary)
+                    }
+                    Spacer(minLength: 0)
+                }
+            } else {
+                Text(T("未打开照片", "No photograph open"))
+                    .font(DS.font(10.5))
+                    .foregroundStyle(DS.textTertiary)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(DS.surface1)
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(DS.hairline).frame(height: 1)
+        }
+    }
+
+    private var layoutToggle: some View {
+        HStack(spacing: 1) {
+            layoutButton(symbol: "square.grid.2x2", target: .grid, help: T("网格显示", "Grid view"))
+            layoutButton(symbol: "list.bullet", target: .list, help: T("列表显示", "List view"))
+        }
+        .padding(2)
+        .background(
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(DS.surface2)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .stroke(DS.hairline, lineWidth: 1)
+        )
+        .help(T("切换预设栏的网格或列表显示", "Switch the preset column between grid and list"))
+    }
+
+    private func layoutButton(symbol: String, target: FilmBrowserLayout, help: String) -> some View {
+        Button {
+            withAnimation(DS.snappy) { layoutRaw = target.rawValue }
+        } label: {
+            Image(systemName: symbol)
+                .font(DS.font(9.5, .medium))
+                .foregroundStyle(layout == target ? DS.accent : DS.textTertiary)
+                .frame(width: 22, height: 20)
+                .background(
+                    RoundedRectangle(cornerRadius: 4.5, style: .continuous)
+                        .fill(layout == target ? DS.surface3 : .clear)
+                )
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(PressableStyle(scale: 0.94))
+        .help(help)
     }
 
     private var filterMenu: some View {
@@ -265,7 +418,7 @@ struct FilmBrowserView: View {
         } label: {
             ZStack(alignment: .topTrailing) {
                 Image(systemName: "slider.horizontal.3")
-                    .font(.system(size: 10.5, weight: .medium))
+                    .font(DS.font(10.5, .medium))
                     .foregroundStyle(model.activeFilterCount > 0 ? DS.accent : DS.textTertiary)
                     .frame(width: 24, height: 24)
                     .background(
@@ -408,7 +561,7 @@ struct ModeTab: View {
         Button(action: action) {
             HStack(spacing: 5) {
                 Text(title)
-                    .font(.system(size: 10, weight: selected ? .medium : .regular))
+                    .font(DS.font(10, selected ? .medium : .regular))
                 Text("\(count)")
                     .font(DS.mono(8))
                     .opacity(selected ? 0.8 : 0.55)
@@ -426,6 +579,8 @@ struct ModeTab: View {
             )
         }
         .buttonStyle(.plain)
+        .animation(DS.easeQuick, value: selected)
+        .animation(DS.easeQuick, value: hovering)
         .onHover { hovering = $0 }
     }
 }
@@ -440,11 +595,11 @@ struct SearchField: View {
     var body: some View {
         HStack(spacing: 7) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 10, weight: .medium))
+                .font(DS.font(10, .medium))
                 .foregroundStyle(focused ? DS.accent : DS.textTertiary)
             TextField(placeholder, text: $text)
                 .textFieldStyle(.plain)
-                .font(.system(size: 11, weight: .regular))
+                .font(DS.font(11, .regular))
                 .foregroundStyle(DS.textPrimary)
                 .focused($focused)
             if !text.isEmpty {
@@ -452,7 +607,7 @@ struct SearchField: View {
                     text = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 10))
+                        .font(DS.font(10))
                         .foregroundStyle(DS.textTertiary)
                 }
                 .buttonStyle(.plain)
@@ -488,7 +643,7 @@ struct FilterChip: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 10, weight: selected ? .medium : .regular))
+                .font(DS.font(10, selected ? .medium : .regular))
                 .foregroundStyle(selected ? DS.accent : (hovering ? DS.textSecondary : DS.textTertiary))
                 .padding(.horizontal, 8)
                 .frame(height: 24)
@@ -503,6 +658,8 @@ struct FilterChip: View {
         }
         .buttonStyle(.plain)
         .focusEffectDisabled()
+        .animation(DS.easeQuick, value: selected)
+        .animation(DS.easeQuick, value: hovering)
         .onHover { hovering = $0 }
     }
 }
@@ -515,9 +672,9 @@ struct ActiveFilterChip: View {
         Button(action: action) {
             HStack(spacing: 4) {
                 Text(title)
-                    .font(.system(size: 9.5, weight: .medium))
+                    .font(DS.font(9.5, .medium))
                 Image(systemName: "xmark")
-                    .font(.system(size: 7, weight: .bold))
+                    .font(DS.font(7, .bold))
             }
             .foregroundStyle(DS.accent)
             .padding(.horizontal, 7)
@@ -548,7 +705,7 @@ struct FilmCard: View {
                     thumbnail
                     VStack(alignment: .leading, spacing: 2) {
                         Text(stock.name)
-                            .font(.system(size: 11, weight: selected ? .medium : .regular))
+                            .font(DS.font(11, selected ? .medium : .regular))
                             .foregroundStyle(selected ? DS.textPrimary : DS.textSecondary)
                             .lineLimit(1)
                         HStack(spacing: 4) {
@@ -556,11 +713,11 @@ struct FilmCard: View {
                                 Circle().fill(DS.accent).frame(width: 3.5, height: 3.5)
                             }
                             Text(stock.brand)
-                                .font(.system(size: 8.5, weight: .medium))
+                                .font(DS.font(8.5, .medium))
                                 .tracking(0.4)
                                 .foregroundStyle(DS.textTertiary)
                             Text(stock.type.localizedShortLabel)
-                                .font(.system(size: 7.5, weight: .semibold))
+                                .font(DS.font(7.5, .semibold))
                                 .tracking(0.2)
                                 .foregroundStyle(DS.textQuaternary)
                             Spacer(minLength: 0)
@@ -598,7 +755,7 @@ struct FilmCard: View {
                     model.toggleFavorite(stock)
                 } label: {
                     Image(systemName: favorite ? "star.fill" : "star")
-                        .font(.system(size: 9, weight: .medium))
+                        .font(DS.font(9, .medium))
                         .foregroundStyle(favorite ? DS.accent : DS.textSecondary)
                         .frame(width: 18, height: 18)
                         .background(Circle().fill(Color.black.opacity(0.42)))
@@ -644,6 +801,233 @@ struct FilmCard: View {
     }
 }
 
+struct FilmRow: View {
+    @Environment(AppModel.self) private var model
+    let stock: FilmStock
+    let selected: Bool
+    let favorite: Bool
+    let image: CGImage?
+    @State private var hovering = false
+
+    var body: some View {
+        Button {
+            model.selectStock(stock)
+        } label: {
+            HStack(spacing: 10) {
+                thumbnail
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(stock.name)
+                        .font(DS.font(12.5, selected ? .medium : .regular))
+                        .foregroundStyle(selected ? DS.accentStrong : DS.textSecondary)
+                        .lineLimit(1)
+                    Text(stock.typeLine)
+                        .font(DS.font(9))
+                        .foregroundStyle(DS.textTertiary)
+                        .lineLimit(1)
+                }
+                Spacer(minLength: 4)
+                if favorite {
+                    Image(systemName: "star.fill")
+                        .font(DS.font(8.5, .medium))
+                        .foregroundStyle(DS.accent)
+                }
+                Text(stock.brand.uppercased())
+                    .font(DS.font(7.5, .medium))
+                    .tracking(0.7)
+                    .foregroundStyle(DS.textQuaternary)
+                    .lineLimit(1)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: DS.rSmall, style: .continuous)
+                    .fill(selected ? DS.surface3 : (hovering ? DS.surface2 : .clear))
+            )
+            .overlay(alignment: .leading) {
+                if selected {
+                    RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+                        .fill(DS.accent)
+                        .frame(width: 2.5)
+                        .padding(.vertical, 7)
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { value in
+            withAnimation(DS.easeQuick) { hovering = value }
+        }
+        .animation(DS.snappy, value: selected)
+        .contextMenu {
+            Button(favorite ? T("取消收藏", "Remove from Favorites") : T("加入收藏", "Add to Favorites")) {
+                model.toggleFavorite(stock)
+            }
+            Button(T("应用 \(stock.name)", "Apply \(stock.name)")) {
+                model.selectStock(stock)
+            }
+        }
+        .help("\(stock.brand) \(stock.name) · \(stock.type.localizedLabel)")
+    }
+
+    private var thumbnail: some View {
+        Group {
+            if let image {
+                Image(decorative: image, scale: 1)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } else {
+                LinearGradient(
+                    colors: swatchColors,
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+        }
+        .frame(width: 34, height: 34)
+        .clipShape(RoundedRectangle(cornerRadius: DS.rSmall, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: DS.rSmall, style: .continuous)
+                .stroke(Color.white.opacity(0.06), lineWidth: 1)
+        )
+    }
+
+    private var swatchColors: [Color] {
+        let colors = stock.swatch.compactMap { Color(hexString: $0) }
+        if colors.count >= 3 { return [colors[0], colors[1], colors[2]] }
+        return [DS.surface2, DS.surface3, DS.surface4]
+    }
+}
+
+struct ImportedLUTRow: View {
+    @Environment(AppModel.self) private var model
+    let lut: ImportedLUT
+    let selected: Bool
+    let image: CGImage?
+    @State private var hovering = false
+
+    var body: some View {
+        Button {
+            model.selectImportedLUT(lut)
+        } label: {
+            HStack(spacing: 10) {
+                thumbnail
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(lut.name)
+                        .font(DS.font(12.5, selected ? .medium : .regular))
+                        .foregroundStyle(selected ? DS.accentStrong : DS.textSecondary)
+                        .lineLimit(1)
+                    Text(lut.subtitle)
+                        .font(DS.font(9))
+                        .foregroundStyle(DS.textTertiary)
+                        .lineLimit(1)
+                }
+                Spacer(minLength: 4)
+                Text("LUT")
+                    .font(DS.font(7.5, .semibold))
+                    .tracking(0.8)
+                    .foregroundStyle(DS.accent.opacity(0.8))
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: DS.rSmall, style: .continuous)
+                    .fill(selected ? DS.surface3 : (hovering ? DS.surface2 : .clear))
+            )
+            .overlay(alignment: .leading) {
+                if selected {
+                    RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+                        .fill(DS.accent)
+                        .frame(width: 2.5)
+                        .padding(.vertical, 7)
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { value in
+            withAnimation(DS.easeQuick) { hovering = value }
+        }
+        .animation(DS.snappy, value: selected)
+        .contextMenu {
+            Button(T("应用 \(lut.name)", "Apply \(lut.name)")) {
+                model.selectImportedLUT(lut)
+            }
+            Divider()
+            Button(T("删除这个 LUT", "Delete this LUT"), role: .destructive) {
+                model.deleteImportedLUT(lut)
+            }
+        }
+        .help(T("导入的 Rec.709 显示 LUT", "Imported Rec.709 display LUT"))
+    }
+
+    private var thumbnail: some View {
+        Group {
+            if let image {
+                Image(decorative: image, scale: 1)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } else {
+                LinearGradient(colors: swatchColors, startPoint: .topLeading, endPoint: .bottomTrailing)
+            }
+        }
+        .frame(width: 34, height: 34)
+        .clipShape(RoundedRectangle(cornerRadius: DS.rSmall, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: DS.rSmall, style: .continuous)
+                .stroke(Color.white.opacity(0.06), lineWidth: 1)
+        )
+    }
+
+    private var swatchColors: [Color] {
+        let colors = lut.swatch.compactMap { Color(hexString: $0) }
+        if colors.count >= 2 { return colors }
+        return [DS.surface2, DS.surface4]
+    }
+}
+
+struct ImportLUTRowTile: View {
+    @Environment(AppModel.self) private var model
+    @State private var hovering = false
+
+    var body: some View {
+        Button {
+            model.chooseLUTFiles()
+        } label: {
+            HStack(spacing: 10) {
+                RoundedRectangle(cornerRadius: DS.rSmall, style: .continuous)
+                    .fill(hovering ? DS.surface3 : DS.surface2)
+                    .frame(width: 34, height: 34)
+                    .overlay(
+                        Image(systemName: "plus")
+                            .font(DS.font(11, .medium))
+                            .foregroundStyle(hovering ? DS.accent : DS.textTertiary)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DS.rSmall, style: .continuous)
+                            .stroke(DS.hairline, lineWidth: 1)
+                    )
+                Text(T("导入 .cube LUT", "Import .cube LUT"))
+                    .font(DS.font(11))
+                    .foregroundStyle(hovering ? DS.textSecondary : DS.textTertiary)
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: DS.rSmall, style: .continuous)
+                    .fill(hovering ? DS.surface2 : .clear)
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { value in
+            withAnimation(DS.easeQuick) { hovering = value }
+        }
+        .disabled(model.isImportingLUT)
+        .help(T("导入 .cube 3D LUT", "Import a .cube 3D LUT"))
+    }
+}
+
 struct ImportedLUTCard: View {
     @Environment(AppModel.self) private var model
     let lut: ImportedLUT
@@ -674,7 +1058,7 @@ struct ImportedLUTCard: View {
                 )
                 VStack(alignment: .leading, spacing: 2) {
                     Text(lut.name)
-                        .font(.system(size: 11, weight: selected ? .medium : .regular))
+                        .font(DS.font(11, selected ? .medium : .regular))
                         .foregroundStyle(selected ? DS.textPrimary : DS.textSecondary)
                         .lineLimit(1)
                     HStack(spacing: 4) {
@@ -682,11 +1066,11 @@ struct ImportedLUTCard: View {
                             Circle().fill(DS.accent).frame(width: 3.5, height: 3.5)
                         }
                         Text("LUT")
-                            .font(.system(size: 7.5, weight: .semibold))
+                            .font(DS.font(7.5, .semibold))
                             .tracking(0.8)
                             .foregroundStyle(DS.accent.opacity(0.8))
                         Text(lut.subtitle)
-                            .font(.system(size: 8))
+                            .font(DS.font(8))
                             .foregroundStyle(DS.textQuaternary)
                         Spacer(minLength: 0)
                     }
@@ -705,6 +1089,7 @@ struct ImportedLUTCard: View {
         }
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
+        .animation(DS.easeQuick, value: hovering)
         .animation(DS.snappy, value: selected)
         .contextMenu {
             Button(T("应用 \(lut.name)", "Apply \(lut.name)")) {
@@ -738,7 +1123,7 @@ struct ImportLUTTile: View {
                     RoundedRectangle(cornerRadius: 6, style: .continuous)
                         .fill(hovering ? DS.surface3 : DS.surface2)
                     Image(systemName: "plus")
-                        .font(.system(size: 16, weight: .light))
+                        .font(DS.font(16, .light))
                         .foregroundStyle(hovering ? DS.accent : DS.textTertiary)
                 }
                 .frame(height: 72)
@@ -747,7 +1132,7 @@ struct ImportLUTTile: View {
                         .stroke(DS.hairline, lineWidth: 1)
                 )
                 Text(T("导入 .cube", "Import .cube"))
-                    .font(.system(size: 10.5, weight: .regular))
+                    .font(DS.font(10.5, .regular))
                     .foregroundStyle(DS.textTertiary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 1)
@@ -778,10 +1163,10 @@ struct EmptyFilmResults: View {
     var body: some View {
         VStack(spacing: 9) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 20, weight: .light))
+                .font(DS.font(20, .light))
                 .foregroundStyle(DS.textTertiary)
             Text(T("没有匹配的胶片", "No films match"))
-                .font(.system(size: 12, weight: .medium))
+                .font(DS.font(12, .medium))
                 .foregroundStyle(DS.textSecondary)
             Text(T("试试其他关键词，或清除当前筛选。", "Try another search, or clear the active filters."))
                 .font(DS.label(9.5))
@@ -798,7 +1183,7 @@ struct EmptyFilmResults: View {
                 }
             } label: {
                 Text(T("清除筛选", "Clear filters"))
-                    .font(.system(size: 10, weight: .medium))
+                    .font(DS.font(10, .medium))
                     .foregroundStyle(DS.accent)
                     .padding(.horizontal, 10)
                     .frame(height: 25)
@@ -824,10 +1209,10 @@ struct EmptyLUTLibrary: View {
     var body: some View {
         VStack(spacing: 10) {
             Image(systemName: "square.stack.3d.up")
-                .font(.system(size: 24, weight: .light))
+                .font(DS.font(24, .light))
                 .foregroundStyle(DS.textTertiary)
             Text(T("还没有导入 LUT", "No imported LUTs yet"))
-                .font(.system(size: 12, weight: .medium))
+                .font(DS.font(12, .medium))
                 .foregroundStyle(DS.textSecondary)
             Text(T("导入 .cube 3D LUT 后，它会出现在这里，并可作为 Rec.709 显示 LUT 作用于当前照片。",
                     "Import a .cube 3D LUT and it will appear here, applied as a Rec.709 display LUT."))
@@ -840,9 +1225,9 @@ struct EmptyLUTLibrary: View {
             } label: {
                 HStack(spacing: 5) {
                     Image(systemName: "plus")
-                        .font(.system(size: 9, weight: .semibold))
+                        .font(DS.font(9, .semibold))
                     Text(T("导入 .cube LUT", "Import .cube LUT"))
-                        .font(.system(size: 10.5, weight: .medium))
+                        .font(DS.font(10.5, .medium))
                 }
                 .foregroundStyle(DS.accent)
                 .padding(.horizontal, 10)
@@ -870,16 +1255,16 @@ struct EmptyLUTResults: View {
     var body: some View {
         VStack(spacing: 9) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 20, weight: .light))
+                .font(DS.font(20, .light))
                 .foregroundStyle(DS.textTertiary)
             Text(T("没有匹配的 LUT", "No LUTs match"))
-                .font(.system(size: 12, weight: .medium))
+                .font(DS.font(12, .medium))
                 .foregroundStyle(DS.textSecondary)
             Button {
                 model.searchText = ""
             } label: {
                 Text(T("清除搜索", "Clear search"))
-                    .font(.system(size: 10, weight: .medium))
+                    .font(DS.font(10, .medium))
                     .foregroundStyle(DS.accent)
                     .padding(.horizontal, 10)
                     .frame(height: 25)

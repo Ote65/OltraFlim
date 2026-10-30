@@ -23,6 +23,9 @@ struct CanvasView: View {
                             .environment(model)
                     }
                     canvasOverlays(renderer: renderer)
+                    ZoomResetHint(canvas: renderer.canvas)
+                        .padding(.bottom, 18)
+                        .frame(maxHeight: .infinity, alignment: .bottom)
                 }
             } else {
                 EngineErrorView()
@@ -36,15 +39,15 @@ struct CanvasView: View {
     @MainActor
     @ViewBuilder
     private func canvasOverlays(renderer: Renderer) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 7) {
-                CompareButton()
+        VStack(spacing: 0) {
+            HStack(alignment: .top, spacing: 8) {
                 FilmIdentityChip()
+                Spacer(minLength: 0)
+                CompareButton()
             }
-            Spacer()
+            Spacer(minLength: 0)
             HStack(alignment: .bottom) {
-                PhotoMetadataLine()
-                Spacer()
+                Spacer(minLength: 0)
                 CanvasZoomControls(canvas: renderer.canvas, renderer: renderer)
             }
         }
@@ -178,22 +181,23 @@ final class CanvasMTKView: MTKView {
         let point = convert(event.locationInWindow, from: nil)
         let backing = window?.backingScaleFactor ?? 2
         let anchor = CGPoint(x: point.x * backing, y: (bounds.height - point.y) * backing)
+        let panFactor: CGFloat = event.hasPreciseScrollingDeltas ? 1.0 : 1.6
 
-        if event.modifierFlags.contains(.control)
-            || event.modifierFlags.contains(.command)
-            || event.modifierFlags.contains(.option) {
-            // A curved, exponential zoom response: small trackpad gestures stay
-            // gentle, fast gestures accelerate without becoming a step function.
+        if event.modifierFlags.contains(.shift) {
+            // Shift + wheel pans horizontally; some mice report only deltaY.
+            let dx = event.scrollingDeltaX != 0 ? event.scrollingDeltaX : event.scrollingDeltaY
+            renderer.canvas.panBy(dx: dx * panFactor, dy: 0)
+        } else if event.modifierFlags.contains(.control) || event.modifierFlags.contains(.command) {
+            // Control (and Command on macOS) + wheel pans vertically.
+            renderer.canvas.panBy(dx: 0, dy: event.scrollingDeltaY * panFactor)
+        } else {
+            // A plain wheel or trackpad scroll zooms around the pointer.
             let raw = event.scrollingDeltaY
             let magnitude = CGFloat(pow(Double(abs(raw)), 0.88))
             let curved = raw < 0 ? -magnitude : magnitude
             let sensitivity: CGFloat = event.hasPreciseScrollingDeltas ? 0.016 : 0.048
             let factor = CGFloat(exp(Double(curved) * Double(sensitivity)))
             renderer.canvas.zoom(by: factor, anchor: anchor)
-        } else {
-            let factor = event.hasPreciseScrollingDeltas ? 1.0 : 1.6
-            renderer.canvas.panBy(dx: event.scrollingDeltaX * factor,
-                                  dy: event.scrollingDeltaY * factor)
         }
     }
 
@@ -223,7 +227,7 @@ struct FilmIdentityChip: View {
             HStack(spacing: 8) {
                 Circle().fill(DS.accent).frame(width: 4, height: 4)
                 Text(lut.name)
-                    .font(.system(size: 10.5, weight: .medium))
+                    .font(DS.font(10.5, .medium))
                     .foregroundStyle(DS.textPrimary)
                     .lineLimit(1)
                 Rectangle().fill(DS.hairlineStrong).frame(width: 1, height: 10)
@@ -252,7 +256,7 @@ struct FilmIdentityChip: View {
                     .fill(DS.accent)
                     .frame(width: 4, height: 4)
                 Text(stock.name)
-                    .font(.system(size: 10.5, weight: .medium))
+                    .font(DS.font(10.5, .medium))
                     .foregroundStyle(DS.textPrimary)
                 Rectangle().fill(DS.hairlineStrong).frame(width: 1, height: 10)
                 Text(look.localizedLabel)
@@ -288,9 +292,9 @@ struct CompareButton: View {
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: "rectangle.split.2x1")
-                    .font(.system(size: 9.5, weight: .semibold))
+                    .font(DS.font(9.5, .semibold))
                 Text(model.showOriginal ? T("对比中", "Comparing") : T("原图", "Original"))
-                    .font(.system(size: 10, weight: .medium))
+                    .font(DS.font(10, .medium))
             }
             .foregroundStyle(model.showOriginal ? DS.accent : DS.textSecondary)
             .padding(.horizontal, 9)
@@ -343,7 +347,7 @@ struct CompareOverlay: View {
                         Image(systemName: "chevron.left")
                         Image(systemName: "chevron.right")
                     }
-                    .font(.system(size: 6.5, weight: .bold))
+                    .font(DS.font(6.5, .bold))
                     .foregroundStyle(DS.accent)
                 }
                 .shadow(color: .black.opacity(0.45), radius: 8, y: 3)
@@ -362,7 +366,7 @@ struct CompareOverlay: View {
 
     private func compareLabel(_ text: String, color: Color) -> some View {
         Text(text)
-            .font(.system(size: 8.5, weight: .medium))
+            .font(DS.font(8.5, .medium))
             .tracking(0.6)
             .foregroundStyle(color)
             .padding(.horizontal, 7)
@@ -374,35 +378,47 @@ struct CompareOverlay: View {
     }
 }
 
-struct PhotoMetadataLine: View {
-    @Environment(AppModel.self) private var model
+struct ZoomResetHint: View {
+    @ObservedObject var canvas: CanvasState
+    @State private var visible = false
+    @State private var hideWork: DispatchWorkItem?
 
     var body: some View {
-        if let photo = model.currentPhoto, photo.metadata.hasContent {
-            HStack(spacing: 6) {
-                let parts = metadataParts(photo.metadata)
-                ForEach(Array(parts.enumerated()), id: \.offset) { item in
-                    Text(item.element)
-                    if item.offset < parts.count - 1 {
-                        Text("·").foregroundStyle(DS.textQuaternary)
-                    }
+        Text(T("按下空格复位", "Press Space to reset"))
+            .font(DS.font(10, .medium))
+            .tracking(0.3)
+            .foregroundStyle(DS.textSecondary)
+            .padding(.horizontal, 11)
+            .frame(height: 25)
+            .background(
+                Capsule().fill(DS.surface3.opacity(0.94))
+            )
+            .overlay(
+                Capsule().stroke(DS.hairlineStrong, lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.42), radius: 10, y: 4)
+            .opacity(visible ? 1 : 0)
+            .scaleEffect(visible ? 1 : 0.97)
+            .animation(DS.easeOutExpo, value: visible)
+            .allowsHitTesting(false)
+            .onChange(of: canvas.isFit) { _, fit in
+                if fit {
+                    hideWork?.cancel()
+                    visible = false
+                } else {
+                    present()
                 }
             }
-            .font(DS.label(9))
-            .foregroundStyle(DS.textTertiary)
-            .lineLimit(1)
-            .padding(.horizontal, 9)
-            .frame(height: 24)
-            .background(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(.ultraThinMaterial)
-            )
-        }
     }
 
-    private func metadataParts(_ metadata: PhotoMetadata) -> [String] {
-        [metadata.camera, metadata.lens, metadata.iso, metadata.aperture, metadata.shutter]
-            .compactMap { $0 }
+    private func present() {
+        hideWork?.cancel()
+        visible = true
+        let work = DispatchWorkItem {
+            visible = false
+        }
+        hideWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: work)
     }
 }
 
@@ -455,7 +471,7 @@ struct CanvasZoomControls: View {
     private func zoomButton(_ symbol: String, help: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 9.5, weight: .medium))
+                .font(DS.font(9.5, .medium))
                 .foregroundStyle(DS.textSecondary)
                 .frame(width: 26, height: 26)
                 .contentShape(Rectangle())
@@ -474,7 +490,7 @@ struct LoadingPhotoView: View {
                 .controlSize(.small)
                 .tint(DS.accent)
             Text(T("正在读取照片", "READING PHOTOGRAPH"))
-                .font(.system(size: 9, weight: .medium))
+                .font(DS.font(9, .medium))
                 .tracking(1.8)
                 .foregroundStyle(DS.textTertiary)
         }
@@ -487,10 +503,10 @@ struct EngineErrorView: View {
     var body: some View {
         VStack(spacing: 10) {
             Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 24, weight: .light))
+                .font(DS.font(24, .light))
                 .foregroundStyle(DS.danger)
             Text(T("胶片引擎无法启动。", "The film engine could not start."))
-                .font(.system(size: 13, weight: .medium))
+                .font(DS.font(13, .medium))
                 .foregroundStyle(DS.textPrimary)
             Text(T("OltraFlim 需要支持 Metal 的 Mac，并运行 macOS 14 或更新版本。", "OltraFlim needs a Metal-capable Mac running macOS 14 or newer."))
                 .font(DS.label(10))
@@ -516,11 +532,11 @@ struct EmptyStateView: View {
                 FilmStripMark()
                     .padding(.bottom, 28)
                 Text(T("从一张照片开始。", "Begin with a photograph."))
-                    .font(.system(size: 26, weight: .medium))
+                    .font(DS.font(26, .medium))
                     .tracking(-0.3)
                     .foregroundStyle(DS.textPrimary)
                 Text(T("拖入照片，选择一款胶片。其余的交给暗房。", "Drop a photograph, choose a film, and let the darkroom do the rest."))
-                    .font(.system(size: 12, weight: .regular))
+                    .font(DS.font(12, .regular))
                     .foregroundStyle(DS.textSecondary)
                     .padding(.top, 8)
                 Button {
@@ -528,9 +544,9 @@ struct EmptyStateView: View {
                 } label: {
                     HStack(spacing: 7) {
                         Image(systemName: "plus")
-                            .font(.system(size: 10, weight: .semibold))
+                            .font(DS.font(10, .semibold))
                         Text(T("导入照片", "Import photograph"))
-                            .font(.system(size: 11.5, weight: .medium))
+                            .font(DS.font(11.5, .medium))
                     }
                     .foregroundStyle(Color(hex: 0x14120E))
                     .padding(.horizontal, 14)
@@ -543,7 +559,7 @@ struct EmptyStateView: View {
                 .buttonStyle(PressableStyle())
                 .padding(.top, 22)
                 Text("JPEG · PNG · TIFF · HEIC · RAW")
-                    .font(.system(size: 8.5, weight: .medium))
+                    .font(DS.font(8.5, .medium))
                     .tracking(1.4)
                     .foregroundStyle(DS.textQuaternary)
                     .padding(.top, 16)

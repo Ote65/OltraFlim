@@ -80,6 +80,15 @@ struct RenderUniforms {
     var blueSaturation: Float = 0
     var highlightWarmth: Float = 0
     var shadowCoolness: Float = 0
+    var midtones: Float = 0
+    var highlightRolloff: Float = 0
+    var bloom: Float = 0
+    var grainRoughness: Float = 50
+    var vignetteMidpoint: Float = 50
+    var vignetteRoundness: Float = 0
+    var vignetteFeather: Float = 50
+    var vignetteCenterX: Float = 0
+    var vignetteCenterY: Float = 0
 
     init(edit: PhotoEdit, look: FilmVariant?, size: CGSize, previewScale: CGFloat, showOriginal: Bool) {
         let a = edit.adjustments
@@ -124,6 +133,15 @@ struct RenderUniforms {
         blueSaturation = Float(a.blueSaturation)
         highlightWarmth = Float(a.highlightWarmth)
         shadowCoolness = Float(a.shadowCoolness)
+        midtones = Float(a.midtones)
+        highlightRolloff = Float(a.highlightRolloff)
+        bloom = Float(a.bloom)
+        grainRoughness = Float(a.grainRoughness)
+        vignetteMidpoint = Float(a.vignetteMidpoint)
+        vignetteRoundness = Float(a.vignetteRoundness)
+        vignetteFeather = Float(a.vignetteFeather)
+        vignetteCenterX = Float(a.vignetteCenterX)
+        vignetteCenterY = Float(a.vignetteCenterY)
     }
 }
 
@@ -607,7 +625,7 @@ final class Renderer {
                 destination: processed,
                 film: film,
                 neutral: neutral,
-                bloom: uniforms.halation > 0.001 ? bloom : blackTexture,
+                bloom: (uniforms.halation > 0.001 || uniforms.bloom > 0.001) ? bloom : blackTexture,
                 userLUT: userLUT ?? neutral,
                 curves: curves,
                 uniforms: uniforms,
@@ -661,7 +679,7 @@ final class Renderer {
     }
 
     private func encodeBloom(commandBuffer: MTLCommandBuffer, source: MTLTexture, bloom: MTLTexture, uniforms: RenderUniforms) {
-        guard uniforms.halation > 0.001, let second = bloomB ?? bloomA else { return }
+        guard uniforms.halation > 0.001 || uniforms.bloom > 0.001, let second = bloomB ?? bloomA else { return }
         var u = uniforms
         // Extract highlights into the half-resolution bloom target.
         if let encoder = commandBuffer.makeComputeCommandEncoder() {
@@ -1041,6 +1059,36 @@ final class Renderer {
         )
     }
 
+    /// Builds a CGImage over a owned pixel buffer without copying the readback
+    /// twice (Array + Data). Used by the full-resolution export path where a
+    /// 45 MP RGBA buffer is large enough that duplicate copies matter.
+    static func makeOwnedCGImage(width: Int, height: Int,
+                                 fill: (UnsafeMutableRawPointer) -> Void) -> CGImage? {
+        let byteCount = width * height * 4
+        guard byteCount > 0 else { return nil }
+        let buffer = UnsafeMutableRawPointer.allocate(byteCount: byteCount, alignment: 16)
+        fill(buffer)
+        guard let provider = CGDataProvider(
+            dataInfo: buffer,
+            data: UnsafeRawPointer(buffer),
+            size: byteCount,
+            releaseData: { info, _, _ in info?.deallocate() }
+        ) else {
+            buffer.deallocate()
+            return nil
+        }
+        return CGImage(
+            width: width, height: height,
+            bitsPerComponent: 8, bitsPerPixel: 32,
+            bytesPerRow: width * 4,
+            space: CGColorSpace(name: CGColorSpace.sRGB)!,
+            bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipLast.rawValue)
+                .union(.byteOrder32Big),
+            provider: provider, decode: nil, shouldInterpolate: true,
+            intent: .defaultIntent
+        )
+    }
+
     // MARK: - Full resolution export
 
     func renderFull(_ image: CGImage, edit: PhotoEdit, look: FilmVariant?) -> CGImage? {
@@ -1093,7 +1141,7 @@ final class Renderer {
             neutral = film
             uniforms.useFilm = 0
         }
-        if uniforms.halation > 0.001 {
+        if uniforms.halation > 0.001 || uniforms.bloom > 0.001 {
             // Use local bloom textures for this export.
             var u = uniforms
             if let encoder = command.makeComputeCommandEncoder() {
@@ -1130,7 +1178,7 @@ final class Renderer {
             destination: destination,
             film: film,
             neutral: neutral,
-            bloom: uniforms.halation > 0.001 ? bloomA : blackTexture,
+            bloom: (uniforms.halation > 0.001 || uniforms.bloom > 0.001) ? bloomA : blackTexture,
             userLUT: userLUT ?? neutral,
             curves: exportCurveTexture,
             uniforms: uniforms,
@@ -1139,10 +1187,12 @@ final class Renderer {
         )
         command.commit()
         command.waitUntilCompleted()
-        var bytes = [UInt8](repeating: 0, count: width * height * 4)
-        destination.getBytes(&bytes, bytesPerRow: width * 4,
-                             from: MTLRegionMake2D(0, 0, width, height), mipmapLevel: 0)
-        return Renderer.makeCGImage(bytes, width: width, height: height)
+        return Renderer.makeOwnedCGImage(width: width, height: height) { buffer in
+            destination.getBytes(
+                buffer, bytesPerRow: width * 4,
+                from: MTLRegionMake2D(0, 0, width, height), mipmapLevel: 0
+            )
+        }
     }
 
     private static func normalize(_ bins: [UInt32], _ denominator: Double) -> [Float] {

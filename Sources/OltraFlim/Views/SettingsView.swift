@@ -8,21 +8,22 @@ struct SettingsView: View {
         @Bindable var model = model
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 10) {
-                ZStack {
-                    Circle().strokeBorder(DS.accent.opacity(0.8), lineWidth: 1)
-                        .frame(width: 18, height: 18)
-                    Circle().fill(DS.accent).frame(width: 4, height: 4)
+                if let mark = AppLogo.mark {
+                    Image(nsImage: mark)
+                        .resizable()
+                        .interpolation(.high)
+                        .frame(width: 28, height: 28)
                 }
                 VStack(alignment: .leading, spacing: 2) {
                     Text("OltraFlim")
-                        .font(.system(size: 15, weight: .medium))
+                        .font(DS.font(15, .medium))
                         .foregroundStyle(DS.textPrimary)
                     Text(T("macOS 胶片模拟暗房", "Film simulation darkroom for macOS"))
                         .font(DS.label(9.5))
                         .foregroundStyle(DS.textSecondary)
                 }
                 Spacer()
-                Text("1.3")
+                Text("1.4")
                     .font(DS.mono(9))
                     .foregroundStyle(DS.textQuaternary)
             }
@@ -32,7 +33,7 @@ struct SettingsView: View {
 
             VStack(alignment: .leading, spacing: 10) {
                 Text(T("语言", "LANGUAGE"))
-                    .font(.system(size: 8.5, weight: .medium))
+                    .font(DS.font(8.5, .medium))
                     .tracking(1.2)
                     .foregroundStyle(DS.textTertiary)
                 HStack(spacing: 5) {
@@ -54,7 +55,7 @@ struct SettingsView: View {
 
             VStack(alignment: .leading, spacing: 10) {
                 Text(T("导出默认", "EXPORT DEFAULTS"))
-                    .font(.system(size: 8.5, weight: .medium))
+                    .font(DS.font(8.5, .medium))
                     .tracking(1.2)
                     .foregroundStyle(DS.textTertiary)
                 HStack(spacing: 5) {
@@ -88,8 +89,52 @@ struct SettingsView: View {
                 .padding(.vertical, 18)
 
             VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text(T("存储与缓存", "STORAGE & CACHE"))
+                        .font(DS.font(8.5, .medium))
+                        .tracking(1.2)
+                        .foregroundStyle(DS.textTertiary)
+                    Spacer()
+                    if model.isClearingCache {
+                        Text(T("清理中…", "Clearing…"))
+                            .font(DS.label(9))
+                            .foregroundStyle(DS.textQuaternary)
+                    }
+                    Button(T("清理缓存", "Clear cache")) {
+                        model.clearThumbnailCache()
+                    }
+                    .buttonStyle(.plain)
+                    .font(DS.font(9.5, .medium))
+                    .foregroundStyle(DS.accent)
+                    .disabled(model.isClearingCache)
+                    .help(T("只清理缩略图与预览缓存，不触碰原图、编辑记录和导入的 LUT",
+                            "Clears thumbnail and preview caches only; originals, edits and imported LUTs stay"))
+                }
+                Text(T("缓存 \(sized(model.storageUsage.cacheBytes)) · 数据 \(sized(model.storageUsage.dataBytes))",
+                       "Cache \(sized(model.storageUsage.cacheBytes)) · Data \(sized(model.storageUsage.dataBytes))"))
+                    .font(DS.mono(9.5))
+                    .foregroundStyle(DS.textSecondary)
+                Text(T("照片始终从原位置读取，不会复制进应用目录；编辑、收藏与导入的 LUT 保存在应用数据文件夹，更新软件不会丢失。",
+                       "Photographs stay in their original locations and are never copied. Edits, favourites and imported LUTs live in the app data folder and survive updates."))
+                    .font(DS.label(9.5))
+                    .foregroundStyle(DS.textTertiary)
+                    .lineSpacing(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button(T("在访达中显示数据文件夹", "Show data folder in Finder")) {
+                    model.revealDataFolder()
+                }
+                .buttonStyle(.plain)
+                .font(.system(size: 9.5, weight: .medium))
+                .foregroundStyle(DS.accent)
+                .padding(.top, 2)
+            }
+
+            Rectangle().fill(DS.hairline).frame(height: 1)
+                .padding(.vertical, 18)
+
+            VStack(alignment: .leading, spacing: 8) {
                 Text(T("胶片包", "FILM PACK"))
-                    .font(.system(size: 8.5, weight: .medium))
+                    .font(DS.font(8.5, .medium))
                     .tracking(1.2)
                     .foregroundStyle(DS.textTertiary)
                 Text(T("\(lookCount) 个外观 · \(model.catalog.stocks.count) 种胶片 · 33³ LUT",
@@ -107,13 +152,13 @@ struct SettingsView: View {
                         NSWorkspace.shared.open(URL(string: "https://github.com/andreavolpato/spektrafilm")!)
                     }
                     .buttonStyle(.plain)
-                    .font(.system(size: 9.5, weight: .medium))
+                    .font(DS.font(9.5, .medium))
                     .foregroundStyle(DS.accent)
                     Button("ACES") {
                         NSWorkspace.shared.open(URL(string: "https://acescentral.com")!)
                     }
                     .buttonStyle(.plain)
-                    .font(.system(size: 9.5, weight: .medium))
+                    .font(DS.font(9.5, .medium))
                     .foregroundStyle(DS.accent)
                 }
                 .padding(.top, 2)
@@ -127,7 +172,7 @@ struct SettingsView: View {
                     UserDefaults.standard.set([], forKey: "favorites")
                 }
                 .buttonStyle(.plain)
-                .font(.system(size: 9.5, weight: .medium))
+                .font(DS.font(9.5, .medium))
                 .foregroundStyle(DS.textTertiary)
                 Spacer()
                 Text(T("© 2026 Oltra", "© 2026 Oltra"))
@@ -136,17 +181,26 @@ struct SettingsView: View {
             }
         }
         .padding(24)
-        .frame(width: 480, height: 540)
+        .frame(width: 480, height: 640)
         .background(DS.surface0)
         .background(SettingsWindowTitle())
         .tint(DS.accent)
         .preferredColorScheme(.dark)
         .focusEffectDisabled()
+        .onAppear { model.refreshStorageUsage() }
         .id(model.language)
     }
 
     private var lookCount: Int {
         model.catalog.stocks.reduce(0) { $0 + $1.variants.count }
+    }
+
+    private func sized(_ bytes: Int64) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        formatter.allowedUnits = [.useKB, .useMB, .useGB]
+        formatter.isAdaptive = true
+        return formatter.string(fromByteCount: bytes)
     }
 }
 

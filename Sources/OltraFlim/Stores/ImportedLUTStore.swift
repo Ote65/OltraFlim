@@ -17,9 +17,20 @@ final class ImportedLUTStore {
         try? FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         if let data = try? Data(contentsOf: registryURL),
            let decoded = try? JSONDecoder().decode([ImportedLUT].self, from: data) {
-            entries = decoded.sorted { $0.createdAt > $1.createdAt }
+            // Self-heal: drop registry rows whose binary vanished, so the LUT
+            // browser never shows an unusable entry after a failed write.
+            let existing = decoded.filter {
+                FileManager.default.fileExists(atPath: root.appendingPathComponent($0.fileName).path)
+            }
+            entries = existing.sorted { $0.createdAt > $1.createdAt }
+            if existing.count != decoded.count { save() }
         }
     }
+
+    /// The version-independent Application Support folder that holds edits,
+    /// library metadata and imported LUT binaries. App updates replace the
+    /// bundle, never this folder.
+    var dataFolder: URL { root.deletingLastPathComponent() }
 
     func binaryURL(for entry: ImportedLUT) -> URL {
         root.appendingPathComponent(entry.fileName)

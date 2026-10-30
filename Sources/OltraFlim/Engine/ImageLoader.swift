@@ -38,7 +38,39 @@ final class ImageLoader {
         ])
     }
 
+    /// Decodes a display-sized preview through ImageIO so a 45 MP original is
+    /// never expanded into a full-resolution RGBA buffer just to fill a window.
     func loadPreview(url: URL, maxPixel: CGFloat = 2600) throws -> LoadedImage {
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+              CGImageSourceGetCount(source) > 0 else {
+            throw ImageLoaderError.unreadable(url.lastPathComponent)
+        }
+        let props = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
+        let thumbOptions: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: Int(max(maxPixel, 1)),
+            kCGImageSourceShouldCacheImmediately: true
+        ]
+        guard let cg = CGImageSourceCreateThumbnailAtIndex(source, 0, thumbOptions as CFDictionary) else {
+            return try loadPreviewWithCoreImage(url: url, maxPixel: maxPixel)
+        }
+        let pixelSize = Self.orientedPixelSize(props, fallback: cg)
+        guard pixelSize.width > 1, pixelSize.height > 1 else {
+            throw ImageLoaderError.unreadable(url.lastPathComponent)
+        }
+        return LoadedImage(
+            image: cg,
+            pixelSize: pixelSize,
+            metadata: metadata(from: props),
+            stats: analyze(cg),
+            thumbnail: nil
+        )
+    }
+
+    /// Rare formats that cannot produce an ImageIO thumbnail keep the old
+    /// Core Image path so opening them still works.
+    private func loadPreviewWithCoreImage(url: URL, maxPixel: CGFloat) throws -> LoadedImage {
         let options: [CIImageOption: Any] = [
             .applyOrientationProperty: true,
             .cacheImmediately: true
@@ -52,22 +84,17 @@ final class ImageLoader {
         }
         let maxSide = max(extent.width, extent.height)
         let scale = min(1.0, maxPixel / maxSide)
-        let output: CIImage
-        if scale < 0.999 {
-            output = full.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
-        } else {
-            output = full
-        }
+        let output = scale < 0.999
+            ? full.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
+            : full
         guard let cg = context.createCGImage(output, from: output.extent, format: .RGBA8, colorSpace: srgb) else {
             throw ImageLoaderError.unreadable(url.lastPathComponent)
         }
-        let properties = metadata(for: url)
-        let stats = analyze(cg)
         return LoadedImage(
             image: cg,
             pixelSize: CGSize(width: extent.width, height: extent.height),
-            metadata: properties,
-            stats: stats,
+            metadata: metadata(for: url),
+            stats: analyze(cg),
             thumbnail: nil
         )
     }
@@ -117,6 +144,11 @@ final class ImageLoader {
               let props = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any] else {
             return PhotoMetadata()
         }
+        return metadata(from: props)
+    }
+
+    private func metadata(from props: [CFString: Any]?) -> PhotoMetadata {
+        guard let props else { return PhotoMetadata() }
         let exif = props[kCGImagePropertyExifDictionary] as? [CFString: Any]
         let tiff = props[kCGImagePropertyTIFFDictionary] as? [CFString: Any]
         var meta = PhotoMetadata()
@@ -150,6 +182,16 @@ final class ImageLoader {
             meta.captured = formatter.date(from: dateString)
         }
         return meta
+    }
+
+    private static func orientedPixelSize(_ props: [CFString: Any]?, fallback image: CGImage) -> CGSize {
+        let width = (props?[kCGImagePropertyPixelWidth] as? NSNumber)?.doubleValue ?? Double(image.width)
+        let height = (props?[kCGImagePropertyPixelHeight] as? NSNumber)?.doubleValue ?? Double(image.height)
+        let orientation = (props?[kCGImagePropertyOrientation] as? NSNumber)?.intValue ?? 1
+        if (5...8).contains(orientation) {
+            return CGSize(width: height, height: width)
+        }
+        return CGSize(width: width, height: height)
     }
 
     // MARK: - Analysis

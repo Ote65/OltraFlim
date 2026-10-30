@@ -172,6 +172,11 @@ struct LibraryPhotoGroup: Identifiable {
     let photos: [Photo]
 }
 
+struct StorageUsage: Equatable {
+    var cacheBytes: Int64 = 0
+    var dataBytes: Int64 = 0
+}
+
 enum LibraryState: Equatable {
     case idle
     case loading(progress: Double, phase: String)
@@ -201,6 +206,47 @@ final class AppModel {
             L10n.current = language
             UserDefaults.standard.set(language.rawValue, forKey: "language")
         }
+    }
+
+    // MARK: In-app settings
+
+    var textScale: Double = 1.0 {
+        didSet {
+            DS.textScale = CGFloat(textScale)
+            UserDefaults.standard.set(textScale, forKey: "uiTextScale")
+        }
+    }
+
+    var reduceMotion: Bool = false {
+        didSet {
+            DS.reduceMotion = reduceMotion
+            UserDefaults.standard.set(reduceMotion, forKey: "reduceMotion")
+        }
+    }
+
+    var defaultExportDirectoryPath: String? {
+        didSet {
+            if let path = defaultExportDirectoryPath {
+                UserDefaults.standard.set(path, forKey: "defaultExportDirectory")
+            } else {
+                UserDefaults.standard.removeObject(forKey: "defaultExportDirectory")
+            }
+        }
+    }
+
+    /// Resolved only when the folder still exists, so a deleted directory
+    /// silently falls back to the system save panel default.
+    var defaultExportDirectory: URL? {
+        guard let path = defaultExportDirectoryPath else { return nil }
+        var isDirectory: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory),
+              isDirectory.boolValue else { return nil }
+        return URL(fileURLWithPath: path, isDirectory: true)
+    }
+
+    var thumbnailCacheCount: Int {
+        photos.reduce(0) { $0 + ($1.thumbnail == nil ? 0 : 1) }
+            + lookThumbs.count + importedThumbs.count + sampleImportedThumbs.count
     }
 
     var importedLUTs: [ImportedLUT] = []
@@ -249,6 +295,8 @@ final class AppModel {
     var exportPresented = false
     var exportOptions: ExportOptions
     var isDropTarget = false
+    var storageUsage = StorageUsage()
+    var isClearingCache = false
 
     private var thumbCache: [UUID: [String: CGImage]] = [:]
     private var importedThumbCache: [UUID: [String: CGImage]] = [:]
@@ -256,6 +304,14 @@ final class AppModel {
     private var pendingPreviews: Set<UUID> = []
     private var sampleThumbs: [String: CGImage] = [:]
     private var sampleImportedThumbs: [String: CGImage] = [:]
+    private var previewAccess: [UUID] = []
+    private var lookThumbAccess: [UUID] = []
+    private var libraryThumbAccess: [UUID] = []
+    private var previewGeneration = 0
+    private let previewLock = NSLock()
+    private let previewQueue = DispatchQueue(label: "studio.oltra.oltraflim.previews", qos: .userInitiated)
+    private let thumbnailCache = ThumbnailCache.shared
+    private var memoryPressureSource: DispatchSourceMemoryPressure?
     private var histogramWork: DispatchWorkItem?
     private var toastTask: Task<Void, Never>?
     private var thumbGeneration = 0
@@ -283,6 +339,15 @@ final class AppModel {
         let selectedLanguage = AppLanguage(rawValue: defaults.string(forKey: "language") ?? "") ?? .chinese
         language = selectedLanguage
         L10n.current = selectedLanguage
+
+        let savedScale = defaults.double(forKey: "uiTextScale")
+        let scale = savedScale > 0 ? min(1.2, max(0.85, savedScale)) : 1.0
+        textScale = scale
+        DS.textScale = CGFloat(scale)
+        let motion = defaults.bool(forKey: "reduceMotion")
+        reduceMotion = motion
+        DS.reduceMotion = motion
+        defaultExportDirectoryPath = defaults.string(forKey: "defaultExportDirectory")
         let catalog: FilmCatalog
         let catalogURL = ResourceLocator.resourceURL("catalog.json")
         if let data = try? Data(contentsOf: catalogURL) {
@@ -333,6 +398,11 @@ final class AppModel {
         loadSamplePreview()
         restoreLibrary()
         restoreFolders()
+        observeMemoryPressure()
+        refreshStorageUsage()
+        DispatchQueue.global(qos: .utility).async {
+            ThumbnailCache.shared.prune()
+        }
         DispatchQueue.main.async { [weak self] in
             self?.importLaunchArguments()
         }
@@ -438,7 +508,6 @@ final class AppModel {
             photos.append(makePhoto(url: url, folder: nil))
         }
         saveLibrary()
-        for photo in photos { requestThumbnail(photo.id) }
     }
 
     private func saveLibrary() {
@@ -468,20 +537,25 @@ final class AppModel {
     }
 
     /// Home cards only need the small thumbnail. The full preview is decoded
-    /// when the photograph is opened in the editor.
+    /// when the photograph is opened in the editor. Thumbnails are persisted to
+    /// a bounded disk cache and capped in memory so large folders stay light.
     func requestThumbnail(_ id: UUID) {
-        guard let index = photos.firstIndex(where: { $0.id == id }),
-              photos[index].thumbnail == nil,
-              !pendingThumbnails.contains(id) else { return }
+        guard let index = photos.firstIndex(where: { $0.id == id }) else { return }
+        if photos[index].thumbnail != nil {
+            touchLibraryThumbnail(id)
+            return
+        }
+        guard !pendingThumbnails.contains(id) else { return }
         pendingThumbnails.insert(id)
         let url = photos[index].url
         thumbnailQueue.async { [weak self] in
-            let thumb = ImageLoader.shared.thumbnail(url: url, maxPixel: 480)
+            let thumb = ThumbnailCache.shared.thumbnail(for: url, maxPixel: 480)
             DispatchQueue.main.async {
                 guard let self else { return }
                 self.pendingThumbnails.remove(id)
                 guard let index = self.photos.firstIndex(where: { $0.id == id }) else { return }
                 self.photos[index].thumbnail = thumb
+                if thumb != nil { self.touchLibraryThumbnail(id) }
             }
         }
     }
@@ -492,7 +566,7 @@ final class AppModel {
         pendingFolderCovers.insert(folder.id)
         let id = folder.id
         thumbnailQueue.async { [weak self] in
-            let thumb = ImageLoader.shared.thumbnail(url: coverURL, maxPixel: 480)
+            let thumb = ThumbnailCache.shared.thumbnail(for: coverURL, maxPixel: 480)
             DispatchQueue.main.async {
                 guard let self else { return }
                 self.pendingFolderCovers.remove(id)
@@ -504,6 +578,28 @@ final class AppModel {
                 }
             }
         }
+    }
+
+    private func touchLibraryThumbnail(_ id: UUID) {
+        libraryThumbAccess.removeAll { $0 == id }
+        libraryThumbAccess.append(id)
+        evictLibraryThumbnails(libraryThumbAccess.count - 200)
+    }
+
+    private func evictLibraryThumbnails(_ overflow: Int) {
+        guard overflow > 0 else { return }
+        var evicted = 0
+        var kept: [UUID] = []
+        for candidate in libraryThumbAccess {
+            if evicted < overflow, candidate != selectedPhotoID,
+               let index = photos.firstIndex(where: { $0.id == candidate }) {
+                photos[index].thumbnail = nil
+                evicted += 1
+            } else {
+                kept.append(candidate)
+            }
+        }
+        libraryThumbAccess = kept
     }
 
     func openPhoto(_ id: UUID) {
@@ -1173,7 +1269,6 @@ final class AppModel {
         }
         photos.append(contentsOf: newPhotos)
         saveLibrary()
-        for photo in newPhotos { requestThumbnail(photo.id) }
         if !shouldOpen, screen == .library, currentFolderURL != nil {
             // Imported files are not copied into the folder being browsed;
             // return to the root so the new loose photographs are visible.
@@ -1244,42 +1339,89 @@ final class AppModel {
         return type.conforms(to: .image)
     }
 
+    /// Previews are decoded one at a time on a dedicated queue. A newer
+    /// selection supersedes queued work, so rapid next/previous browsing never
+    /// leaves several full-size previews resident at once.
     private func loadPreview(for photoID: UUID) {
-        guard let photo = photos.first(where: { $0.id == photoID }),
-              !pendingPreviews.contains(photoID) else { return }
+        guard let index = photos.firstIndex(where: { $0.id == photoID }) else { return }
         pendingPreviews.insert(photoID)
-        let url = photo.url
-        let id = photo.id
-        DispatchQueue.global(qos: .userInitiated).async {
+        previewLock.lock()
+        previewGeneration += 1
+        let generation = previewGeneration
+        previewLock.unlock()
+        let id = photos[index].id
+        let url = photos[index].url
+        let needsThumbnail = photos[index].thumbnail == nil
+        previewQueue.async { [weak self] in
+            guard let self else { return }
+            guard self.currentPreviewGeneration() == generation else {
+                DispatchQueue.main.async { self.pendingPreviews.remove(id) }
+                return
+            }
             do {
                 let loaded = try ImageLoader.shared.loadPreview(url: url)
-                let thumb = ImageLoader.shared.thumbnail(url: url, maxPixel: 320) ?? loaded.image
-                DispatchQueue.main.async { [weak self] in
-                    guard let self else { return }
+                guard self.currentPreviewGeneration() == generation else {
+                    DispatchQueue.main.async { self.pendingPreviews.remove(id) }
+                    return
+                }
+                let thumb = needsThumbnail
+                    ? ThumbnailCache.shared.thumbnail(for: url, maxPixel: 480)
+                    : nil
+                DispatchQueue.main.async {
                     self.pendingPreviews.remove(id)
-                    guard let index = self.photos.firstIndex(where: { $0.id == id }) else { return }
+                    guard self.currentPreviewGeneration() == generation,
+                          let index = self.photos.firstIndex(where: { $0.id == id }) else { return }
                     self.photos[index].previewImage = loaded.image
                     self.photos[index].pixelSize = loaded.pixelSize
                     self.photos[index].metadata = loaded.metadata
                     self.photos[index].sourceStats = loaded.stats
-                    self.photos[index].thumbnail = thumb
+                    if self.photos[index].thumbnail == nil, let thumb {
+                        self.photos[index].thumbnail = thumb
+                        self.touchLibraryThumbnail(id)
+                    }
                     self.photos[index].previewLoaded = true
+                    self.touchPreview(id)
                     if self.selectedPhotoID == id {
                         self.installPreview(for: id)
                     }
                 }
             } catch {
-                DispatchQueue.main.async { [weak self] in
-                    guard let self else { return }
+                DispatchQueue.main.async {
                     self.pendingPreviews.remove(id)
                     if let index = self.photos.firstIndex(where: { $0.id == id }) {
                         self.photos[index].previewError = error.localizedDescription
                     }
+                    guard self.selectedPhotoID == id else { return }
                     self.alertMessage = error.localizedDescription
                     self.removePhoto(id)
                 }
             }
         }
+    }
+
+    private func currentPreviewGeneration() -> Int {
+        previewLock.lock()
+        defer { previewLock.unlock() }
+        return previewGeneration
+    }
+
+    private func touchPreview(_ id: UUID) {
+        previewAccess.removeAll { $0 == id }
+        previewAccess.append(id)
+        while previewAccess.count > 3 {
+            guard let candidate = previewAccess.first(where: { $0 != selectedPhotoID }),
+                  let index = photos.firstIndex(where: { $0.id == candidate }) else { break }
+            photos[index].previewImage = nil
+            photos[index].previewLoaded = false
+            previewAccess.removeAll { $0 == candidate }
+            dropLookThumbs(for: candidate)
+        }
+    }
+
+    private func dropLookThumbs(for id: UUID) {
+        thumbCache[id] = nil
+        importedThumbCache[id] = nil
+        lookThumbAccess.removeAll { $0 == id }
     }
 
     private func installPreview(for photoID: UUID) {
@@ -1366,10 +1508,11 @@ final class AppModel {
             if let stockID = index.stockID(forLook: photo.edit.lookID) {
                 browseStockID = stockID
             }
-            lookThumbs = thumbCache[id] ?? [:]
-            importedThumbs = importedThumbCache[id] ?? [:]
+            lookThumbs = cachedLookThumbs(for: id) ?? [:]
+            importedThumbs = cachedImportedThumbs(for: id) ?? [:]
             libraryMode = photo.edit.usesLUT ? .luts : .films
-            if photo.previewLoaded {
+            if photo.previewLoaded, photo.previewImage != nil {
+                touchPreview(id)
                 installPreview(for: id)
             } else {
                 renderer?.clearImage()
@@ -1391,6 +1534,9 @@ final class AppModel {
         }
         thumbCache[id] = nil
         importedThumbCache[id] = nil
+        previewAccess.removeAll { $0 == id }
+        lookThumbAccess.removeAll { $0 == id }
+        libraryThumbAccess.removeAll { $0 == id }
         pendingThumbnails.remove(id)
         pendingPreviews.remove(id)
         saveLibrary()
@@ -1489,9 +1635,12 @@ final class AppModel {
         let fallback: Double
         switch keyPath {
         case \Adjustments.grainSize: fallback = 38
+        case \Adjustments.grainRoughness: fallback = 50
         case \Adjustments.halationThreshold: fallback = 55
         case \Adjustments.halationRadius: fallback = 50
         case \Adjustments.halationWarmth: fallback = 75
+        case \Adjustments.vignetteMidpoint: fallback = 50
+        case \Adjustments.vignetteFeather: fallback = 50
         default: fallback = 0
         }
         updateAdjustments { $0[keyPath: keyPath] = fallback }
@@ -1626,7 +1775,7 @@ final class AppModel {
     }
 
     func setCompareSplit(_ value: Double) {
-        compareSplit = value.clamped(to: 0.08...0.92)
+        compareSplit = value.clamped(to: 0...1)
         if showOriginal {
             renderer?.setCompare(enabled: true, split: compareSplit)
         }
@@ -1665,13 +1814,40 @@ final class AppModel {
     }
 
     private func cachedLookThumbs(for photoID: UUID?) -> [String: CGImage]? {
-        if let photoID { return thumbCache[photoID] }
-        return sampleThumbs
+        guard let photoID else { return sampleThumbs }
+        let cached = thumbCache[photoID]
+        if cached?.isEmpty == false { touchLookThumbCache(photoID) }
+        return cached
     }
 
     private func cachedImportedThumbs(for photoID: UUID?) -> [String: CGImage]? {
-        if let photoID { return importedThumbCache[photoID] }
-        return sampleImportedThumbs
+        guard let photoID else { return sampleImportedThumbs }
+        let cached = importedThumbCache[photoID]
+        if cached?.isEmpty == false { touchLookThumbCache(photoID) }
+        return cached
+    }
+
+    private func storeLookThumbs(_ images: [String: CGImage], for photoID: UUID) {
+        thumbCache[photoID] = images
+        touchLookThumbCache(photoID)
+    }
+
+    private func storeImportedThumbs(_ images: [String: CGImage], for photoID: UUID) {
+        importedThumbCache[photoID] = images
+        touchLookThumbCache(photoID)
+    }
+
+    /// The 113-look atlas is a few megabytes per photograph. Only the most
+    /// recently used photographs keep it so multi-photo editing stays bounded.
+    private func touchLookThumbCache(_ id: UUID) {
+        lookThumbAccess.removeAll { $0 == id }
+        lookThumbAccess.append(id)
+        while lookThumbAccess.count > 3 {
+            guard let candidate = lookThumbAccess.first(where: { $0 != selectedPhotoID }) else { break }
+            lookThumbAccess.removeAll { $0 == candidate }
+            thumbCache[candidate] = nil
+            importedThumbCache[candidate] = nil
+        }
     }
 
     private func generateThumbsIfNeeded() {
@@ -1718,7 +1894,7 @@ final class AppModel {
                 guard let self else { return }
                 if generation == self.thumbGeneration {
                     if let photoID = source.photoID {
-                        self.importedThumbCache[photoID] = images
+                        self.storeImportedThumbs(images, for: photoID)
                     } else {
                         self.sampleImportedThumbs = images
                     }
@@ -1737,7 +1913,7 @@ final class AppModel {
                 guard let self else { return }
                 if generation == self.thumbGeneration {
                     if let photoID = source.photoID {
-                        self.thumbCache[photoID] = images
+                        self.storeLookThumbs(images, for: photoID)
                     } else {
                         self.sampleThumbs = images
                     }
@@ -1775,8 +1951,149 @@ final class AppModel {
         panel.canCreateDirectories = true
         panel.nameFieldStringValue = suggestedFileName(for: photo)
         panel.message = T("导出显影后的照片。", "Export the developed photograph.")
+        if let directory = defaultExportDirectory {
+            panel.directoryURL = directory
+        }
         guard panel.runModal() == .OK, let url = panel.url else { return }
         performExport(photo: photo, to: url)
+    }
+
+    func chooseDefaultExportDirectory() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.canCreateDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.prompt = T("选择", "Choose")
+        panel.message = T("选择导出时的默认保存位置。",
+                          "Choose where exported photographs are saved by default.")
+        if let directory = defaultExportDirectory {
+            panel.directoryURL = directory
+        }
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        defaultExportDirectoryPath = url.path
+        showToast(T("默认保存位置已更新", "Default export folder updated"),
+                  detail: url.lastPathComponent,
+                  symbol: "folder")
+    }
+
+    /// Clears derived image caches only: memory thumbnails, decoded previews
+    /// and the on-disk thumbnail cache. Library indexes, edits, favourites,
+    /// imported LUTs and the original files on disk are never touched.
+    func clearThumbnailCache() {
+        guard !isClearingCache else { return }
+        isClearingCache = true
+        let selected = selectedPhotoID
+        previewLock.lock()
+        previewGeneration += 1
+        previewLock.unlock()
+        thumbGeneration += 1
+        isGeneratingThumbs = false
+        previewAccess.removeAll()
+        lookThumbAccess.removeAll()
+        libraryThumbAccess.removeAll()
+        thumbCache.removeAll()
+        importedThumbCache.removeAll()
+        sampleThumbs.removeAll()
+        sampleImportedThumbs.removeAll()
+        lookThumbs.removeAll()
+        importedThumbs.removeAll()
+        pendingThumbnails.removeAll()
+        pendingFolderCovers.removeAll()
+        let cache = thumbnailCache
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            cache.clear()
+            DispatchQueue.main.async {
+                guard let self else { return }
+                // Release the in-memory copies only after the disk cache is
+                // gone, so visible cards re-request from an empty cache instead
+                // of repopulating it while the sweep is still running.
+                for index in self.photos.indices {
+                    self.photos[index].thumbnail = nil
+                    self.photos[index].previewImage = nil
+                    self.photos[index].previewLoaded = false
+                }
+                for index in self.folders.indices {
+                    self.folders[index].cover = nil
+                }
+                for index in self.subfolderEntries.indices {
+                    self.subfolderEntries[index].cover = nil
+                }
+                self.renderer?.clearImage()
+                self.isClearingCache = false
+                self.storageUsage.cacheBytes = 0
+                if let selected, self.photos.contains(where: { $0.id == selected }) {
+                    self.selectPhoto(selected)
+                } else {
+                    self.loadSamplePreview()
+                }
+                self.refreshStorageUsage()
+                self.showToast(T("已清理图片缓存", "Image cache cleared"),
+                              detail: T("原照片、编辑记录与导入的 LUT 均未改动",
+                                         "Originals, edits and imported LUTs were left untouched"),
+                              symbol: "trash")
+            }
+        }
+    }
+
+    var dataFolderURL: URL {
+        importedStore.dataFolder
+    }
+
+    func refreshStorageUsage() {
+        let cacheRoot = thumbnailCache.root
+        let dataURL = dataFolderURL
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            let cacheBytes = StorageInspector.size(of: cacheRoot)
+            let dataBytes = StorageInspector.size(of: dataURL)
+            DispatchQueue.main.async {
+                self?.storageUsage = StorageUsage(cacheBytes: cacheBytes, dataBytes: dataBytes)
+            }
+        }
+    }
+
+    func revealDataFolder() {
+        NSWorkspace.shared.open(dataFolderURL)
+    }
+
+    // MARK: Memory pressure
+
+    private func observeMemoryPressure() {
+        let source = DispatchSource.makeMemoryPressureSource(
+            eventMask: [.warning, .critical],
+            queue: .main
+        )
+        source.setEventHandler { [weak self] in
+            guard let self, let source = self.memoryPressureSource else { return }
+            self.handleMemoryPressure(critical: source.data.contains(.critical))
+        }
+        source.resume()
+        memoryPressureSource = source
+    }
+
+    private func handleMemoryPressure(critical: Bool) {
+        let selected = selectedPhotoID
+        for index in photos.indices where photos[index].id != selected {
+            photos[index].previewImage = nil
+            photos[index].previewLoaded = false
+        }
+        previewAccess = selected.map { [$0] } ?? []
+        if let selected {
+            thumbCache = thumbCache[selected].map { [selected: $0] } ?? [:]
+            importedThumbCache = importedThumbCache[selected].map { [selected: $0] } ?? [:]
+        } else {
+            thumbCache.removeAll()
+            importedThumbCache.removeAll()
+        }
+        lookThumbAccess = selected.map { [$0] } ?? []
+        if critical {
+            for index in photos.indices where photos[index].id != selected {
+                photos[index].thumbnail = nil
+            }
+            libraryThumbAccess = selected.map { [$0] } ?? []
+        } else {
+            evictLibraryThumbnails(libraryThumbAccess.count - 100)
+        }
     }
 
     private func suggestedFileName(for photo: Photo) -> String {
@@ -1796,24 +2113,26 @@ final class AppModel {
         let look = index.look(photo.edit.lookID)
         let sourceURL = photo.url
         DispatchQueue.global(qos: .userInitiated).async {
-            do {
-                var image = try ImageLoader.shared.loadFull(url: sourceURL)
-                if let edge = options.longEdge, max(image.width, image.height) > edge {
-                    image = try Self.resize(image, longEdge: CGFloat(edge))
-                }
-                guard let rendered = renderer.renderFull(image, edit: edit, look: look) else {
-                    throw RendererError.exportFailed
-                }
-                try Self.write(rendered, to: url, format: options.format, quality: options.quality)
-                DispatchQueue.main.async { [weak self] in
-                    self?.isExporting = false
-                    self?.showToast(T("已导出 \(url.lastPathComponent)", "Exported \(url.lastPathComponent)"), symbol: "checkmark")
-                    NSWorkspace.shared.activateFileViewerSelecting([url])
-                }
-            } catch {
-                DispatchQueue.main.async { [weak self] in
-                    self?.isExporting = false
-                    self?.alertMessage = T("导出失败：\(error.localizedDescription)", "Export failed: \(error.localizedDescription)")
+            autoreleasepool {
+                do {
+                    var image = try ImageLoader.shared.loadFull(url: sourceURL)
+                    if let edge = options.longEdge, max(image.width, image.height) > edge {
+                        image = try Self.resize(image, longEdge: CGFloat(edge))
+                    }
+                    guard let rendered = renderer.renderFull(image, edit: edit, look: look) else {
+                        throw RendererError.exportFailed
+                    }
+                    try Self.write(rendered, to: url, format: options.format, quality: options.quality)
+                    DispatchQueue.main.async { [weak self] in
+                        self?.isExporting = false
+                        self?.showToast(T("已导出 \(url.lastPathComponent)", "Exported \(url.lastPathComponent)"), symbol: "checkmark")
+                        NSWorkspace.shared.activateFileViewerSelecting([url])
+                    }
+                } catch {
+                    DispatchQueue.main.async { [weak self] in
+                        self?.isExporting = false
+                        self?.alertMessage = T("导出失败：\(error.localizedDescription)", "Export failed: \(error.localizedDescription)")
+                    }
                 }
             }
         }

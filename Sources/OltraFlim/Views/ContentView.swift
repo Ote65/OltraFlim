@@ -12,10 +12,10 @@ struct ContentView: View {
                 Rectangle().fill(DS.hairline).frame(height: 1)
                 if model.screen == .library {
                     HomeLibraryView()
-                        .transition(.opacity)
+                        .transition(.opacity.combined(with: .scale(scale: 0.994)))
                 } else {
                     editorBody
-                        .transition(.opacity)
+                        .transition(.opacity.combined(with: .scale(scale: 0.994)))
                 }
             }
             .background(DS.surface0)
@@ -61,7 +61,7 @@ struct ContentView: View {
         .tint(DS.accent)
         .preferredColorScheme(.dark)
         .focusEffectDisabled()
-        .id(model.language)
+        .id("\(model.language.rawValue)-\(model.textScale)")
         .sheet(isPresented: $showExportSheet) {
             ExportSheet()
                 .environment(model)
@@ -113,13 +113,13 @@ struct ToastView: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: toast.symbol)
-                .font(.system(size: 11, weight: .semibold))
+                .font(DS.font(11, .semibold))
                 .foregroundStyle(DS.accent)
                 .frame(width: 18, height: 18)
                 .background(Circle().fill(DS.accent.opacity(0.12)))
             VStack(alignment: .leading, spacing: 1) {
                 Text(toast.text)
-                    .font(.system(size: 11.5, weight: .medium))
+                    .font(DS.font(11.5, .medium))
                     .foregroundStyle(DS.textPrimary)
                 if let detail = toast.detail {
                     Text(detail)
@@ -150,10 +150,10 @@ struct DropOverlay: View {
             DS.surface0.opacity(0.86)
             VStack(spacing: 12) {
                 Image(systemName: "photo.on.rectangle.angled")
-                    .font(.system(size: 30, weight: .light))
+                    .font(DS.font(30, .light))
                     .foregroundStyle(DS.accent)
                 Text(T("松开以加入照片库", "Drop to add to the library"))
-                    .font(.system(size: 15, weight: .medium))
+                    .font(DS.font(15, .medium))
                     .foregroundStyle(DS.textPrimary)
                 Text(T("JPEG · PNG · TIFF · HEIC · RAW · DNG · 文件夹",
                        "JPEG · PNG · TIFF · HEIC · RAW · DNG · Folders"))
@@ -186,7 +186,7 @@ struct ExportProgressOverlay: View {
                     .tint(DS.accent)
                 VStack(alignment: .leading, spacing: 3) {
                     Text(T("正在显影", "Developing"))
-                        .font(.system(size: 12, weight: .medium))
+                        .font(DS.font(12, .medium))
                         .foregroundStyle(DS.textPrimary)
                     Text(model.exportStatus)
                         .font(DS.label(10))
@@ -214,7 +214,7 @@ struct StartupErrorBanner: View {
     var body: some View {
         HStack(spacing: 9) {
             Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 11, weight: .medium))
+                .font(DS.font(11, .medium))
                 .foregroundStyle(DS.danger)
             Text(text)
                 .font(DS.label(11))

@@ -16,13 +16,6 @@ struct TopBar: View {
                 }
                 .buttonStyle(PressableStyle())
                 .help(T("返回照片库", "Back to library"))
-
-                Rectangle()
-                    .fill(DS.hairlineStrong)
-                    .frame(width: 1, height: 16)
-                    .padding(.horizontal, 2)
-
-                photoIdentity
             } else {
                 if !model.folderTrail.isEmpty {
                     Button {
@@ -92,7 +85,7 @@ struct TopBar: View {
     private var libraryIdentity: some View {
         HStack(spacing: 8) {
             Text(model.libraryTitle)
-                .font(.system(size: 11, weight: .medium))
+                .font(DS.font(11, .medium))
                 .tracking(0.2)
                 .foregroundStyle(DS.textPrimary)
                 .lineLimit(1)
@@ -104,59 +97,16 @@ struct TopBar: View {
         .lineLimit(1)
     }
 
-    private var photoIdentity: some View {
-        HStack(spacing: 7) {
-            if let photo = model.currentPhoto {
-                Text(photo.name)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(DS.textPrimary)
-                    .lineLimit(1)
-                if photo.pixelSize.width > 0 {
-                    Text("\(Int(photo.pixelSize.width)) × \(Int(photo.pixelSize.height))")
-                        .font(DS.mono(9))
-                        .foregroundStyle(DS.textTertiary)
-                }
-                Text("·").foregroundStyle(DS.textQuaternary)
-                if let lut = model.currentImportedLUT {
-                    Text(lut.name)
-                        .font(DS.label(9.5))
-                        .foregroundStyle(DS.textSecondary)
-                        .lineLimit(1)
-                    Text("LUT")
-                        .font(.system(size: 8, weight: .medium))
-                        .tracking(0.8)
-                        .foregroundStyle(DS.accent.opacity(0.9))
-                } else if let stock = model.currentStock {
-                    Text(stock.name)
-                        .font(DS.label(9.5))
-                        .foregroundStyle(DS.textSecondary)
-                        .lineLimit(1)
-                    Text(stock.brand.uppercased())
-                        .font(.system(size: 8, weight: .medium))
-                        .tracking(0.8)
-                        .foregroundStyle(DS.accent.opacity(0.9))
-                }
-            } else {
-                Text(T("未打开照片", "No photograph open"))
-                    .font(DS.label(10.5))
-                    .foregroundStyle(DS.textTertiary)
-            }
-        }
-        .lineLimit(1)
-    }
-
     private var logo: some View {
         HStack(spacing: 6) {
-            ZStack {
-                Circle()
-                    .strokeBorder(DS.accent.opacity(0.55), lineWidth: 1)
-                    .frame(width: 11, height: 11)
-                Circle()
-                    .fill(DS.accent.opacity(0.85))
-                    .frame(width: 2.5, height: 2.5)
+            if let mark = AppLogo.mark {
+                Image(nsImage: mark)
+                    .resizable()
+                    .interpolation(.high)
+                    .frame(width: 17, height: 17)
             }
             Text("OLTRAFLIM")
-                .font(.system(size: 9, weight: .semibold))
+                .font(DS.font(9, .semibold))
                 .tracking(1.5)
                 .foregroundStyle(DS.textSecondary.opacity(0.72))
         }
@@ -187,9 +137,9 @@ struct CompactBarButton: View {
     var body: some View {
         HStack(spacing: 5) {
             Image(systemName: symbol)
-                .font(.system(size: 9, weight: .semibold))
+                .font(DS.font(9, .semibold))
             Text(title)
-                .font(.system(size: 10, weight: .medium))
+                .font(DS.font(10, .medium))
         }
         .foregroundStyle(accent ? Color(hex: 0x14120E) : DS.textPrimary)
         .padding(.horizontal, 9)
@@ -202,6 +152,7 @@ struct CompactBarButton: View {
             RoundedRectangle(cornerRadius: 6, style: .continuous)
                 .stroke(accent ? .clear : DS.hairline, lineWidth: 1)
         )
+        .animation(DS.easeQuick, value: hovering)
         .onHover { hovering = $0 }
     }
 }
@@ -212,7 +163,7 @@ struct SettingsGear: View {
 
     var body: some View {
         Image(systemName: "gearshape")
-            .font(.system(size: 10, weight: .medium))
+            .font(DS.font(10, .medium))
             .foregroundStyle(hovering ? DS.accent : DS.textTertiary)
             .frame(width: 26, height: 26)
             .background(
@@ -231,6 +182,7 @@ struct SettingsGear: View {
             }
             .onHover { hovering = $0 }
             .help(T("设置", "Settings"))
+            .animation(DS.easeQuick, value: hovering)
     }
 }
 
@@ -282,7 +234,7 @@ struct WindowTrafficLights: View {
                     )
                 if hovering && active {
                     Image(systemName: symbol)
-                        .font(.system(size: 6.5, weight: .bold))
+                        .font(DS.font(6.5, .bold))
                         .foregroundStyle(.black.opacity(0.62))
                 }
             }

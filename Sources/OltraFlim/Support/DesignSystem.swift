@@ -36,19 +36,42 @@ enum DS {
     static let rLarge: CGFloat = 15
 
     // Motion
-    static let easeOutExpo = Animation.timingCurve(0.16, 1, 0.3, 1, duration: 0.28)
-    static let easeQuick = Animation.timingCurve(0.16, 1, 0.3, 1, duration: 0.18)
-    static let spring = Animation.spring(response: 0.32, dampingFraction: 0.72)
-    static let snappy = Animation.spring(response: 0.34, dampingFraction: 0.82)
+    /// Global switches driven by the in-app settings panel.
+    static var reduceMotion = false
+    static var textScale: CGFloat = 1
+
+    static var easeOutExpo: Animation {
+        reduceMotion ? .linear(duration: 0.001) : .timingCurve(0.16, 1, 0.3, 1, duration: 0.28)
+    }
+    static var easeQuick: Animation {
+        reduceMotion ? .linear(duration: 0.001) : .timingCurve(0.16, 1, 0.3, 1, duration: 0.18)
+    }
+    static var spring: Animation {
+        reduceMotion ? .linear(duration: 0.001) : .spring(response: 0.32, dampingFraction: 0.72)
+    }
+    static var snappy: Animation {
+        reduceMotion ? .linear(duration: 0.001) : .spring(response: 0.34, dampingFraction: 0.82)
+    }
 
     // Type scale
-    static func label(_ size: CGFloat = 11) -> Font { .system(size: size, weight: .regular) }
-    static func medium(_ size: CGFloat = 11) -> Font { .system(size: size, weight: .medium) }
-    static func strong(_ size: CGFloat = 12) -> Font { .system(size: size, weight: .semibold) }
-    static func title(_ size: CGFloat = 20) -> Font { .system(size: size, weight: .medium) }
-    static func mono(_ size: CGFloat = 11) -> Font {
-        .system(size: size, weight: .regular, design: .monospaced)
+    static func font(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
+        .system(size: size * textScale, weight: weight)
     }
+    static func label(_ size: CGFloat = 11) -> Font { .system(size: size * textScale, weight: .regular) }
+    static func medium(_ size: CGFloat = 11) -> Font { .system(size: size * textScale, weight: .medium) }
+    static func strong(_ size: CGFloat = 12) -> Font { .system(size: size * textScale, weight: .semibold) }
+    static func title(_ size: CGFloat = 20) -> Font { .system(size: size * textScale, weight: .medium) }
+    static func mono(_ size: CGFloat = 11, _ weight: Font.Weight = .regular) -> Font {
+        .system(size: size * textScale, weight: weight, design: .monospaced)
+    }
+}
+
+// MARK: - Brand mark
+
+enum AppLogo {
+    /// The film-strip "Q" mark, shipped as a transparent PNG and reused
+    /// everywhere the app shows its identity.
+    static let mark: NSImage? = NSImage(contentsOf: ResourceLocator.resourceURL("LogoMark.png"))
 }
 
 extension Color {

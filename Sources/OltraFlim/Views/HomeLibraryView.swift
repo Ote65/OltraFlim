@@ -34,6 +34,12 @@ struct HomeLibraryView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .overlay(alignment: .bottomTrailing) {
+            SettingsFloatingButton {
+                SettingsPanelController.shared.show(model: model)
+            }
+            .padding(24)
+        }
         .confirmationDialog(
             T("从照片库移除照片？", "Remove photograph from library?"),
             isPresented: Binding(
@@ -115,8 +121,8 @@ struct HomeLibraryView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 34)
-                .padding(.top, 24)
+                .padding(.horizontal, 26)
+                .padding(.top, 22)
                 .padding(.bottom, 46)
             }
             .scrollIndicators(.never)
@@ -129,23 +135,32 @@ struct HomeLibraryView: View {
     // MARK: Header
 
     private var header: some View {
-        HStack(alignment: .center, spacing: 16) {
+        HStack(alignment: .center, spacing: 12) {
+            Button {
+                withAnimation(DS.snappy) { model.goUpFolder() }
+            } label: {
+                LibraryBackButton()
+            }
+            .buttonStyle(PressableStyle(scale: 0.94))
+            .disabled(model.folderTrail.isEmpty)
+            .opacity(model.folderTrail.isEmpty ? 0.32 : 1)
+            .help(T("返回上一级", "Back one level"))
             VStack(alignment: .leading, spacing: 4) {
                 if model.folderTrail.isEmpty {
-                    Text(T("全部照片", "ALL PHOTOGRAPHS"))
-                        .font(.system(size: 16, weight: .medium))
+                    Text(T("照片库", "PHOTO LIBRARY"))
+                        .font(DS.font(21, .semibold))
                         .tracking(0.2)
                         .foregroundStyle(DS.textPrimary)
                 } else {
                     breadcrumb
                     Text(model.currentFolderName ?? model.libraryTitle)
-                        .font(.system(size: 17, weight: .medium))
+                        .font(DS.font(21, .semibold))
                         .foregroundStyle(DS.textPrimary)
                         .lineLimit(1)
                 }
                 Text(T("点击照片进入显影；支持文件夹、收藏与颜色标签。",
                        "Click a photograph to develop. Folders, favorites and colour labels are supported."))
-                    .font(DS.label(10.5))
+                    .font(DS.label(11))
                     .foregroundStyle(DS.textTertiary)
                     .lineLimit(1)
             }
@@ -155,8 +170,8 @@ struct HomeLibraryView: View {
                 FolderImportButton()
             }
         }
-        .padding(.horizontal, 34)
-        .frame(height: 80)
+        .padding(.horizontal, 26)
+        .frame(height: 86)
         .background(DS.surface1)
         .overlay(alignment: .bottom) {
             Rectangle().fill(DS.hairline).frame(height: 1)
@@ -169,19 +184,19 @@ struct HomeLibraryView: View {
                 model.goToLibraryRoot()
             } label: {
                 Text(T("照片库", "Library"))
-                    .font(.system(size: 9.5, weight: .medium))
+                    .font(DS.font(9.5, .medium))
                     .foregroundStyle(DS.textTertiary)
             }
             .buttonStyle(.plain)
             ForEach(Array(model.folderTrail.enumerated()), id: \.offset) { index, url in
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 7, weight: .semibold))
+                    .font(DS.font(7, .semibold))
                     .foregroundStyle(DS.textQuaternary)
                 Button {
                     model.navigateToTrail(index)
                 } label: {
                     Text(url.lastPathComponent)
-                        .font(.system(size: 9.5, weight: index == model.folderTrail.count - 1
+                        .font(DS.font(9.5, index == model.folderTrail.count - 1
                                       ? .medium : .regular))
                         .foregroundStyle(index == model.folderTrail.count - 1
                                          ? DS.textSecondary : DS.textTertiary)
@@ -213,13 +228,13 @@ struct HomeLibraryView: View {
                 ),
                 placeholder: T("搜索照片、胶片、标签", "Search photos, film, labels")
             )
-            .frame(width: 168)
+            .frame(width: 200)
             Rectangle().fill(DS.hairlineStrong).frame(width: 1, height: 18)
             viewMenu
             groupMenu
         }
-        .padding(.horizontal, 34)
-        .frame(height: 50)
+        .padding(.horizontal, 26)
+        .frame(height: 48)
         .background(DS.surface1)
         .overlay(alignment: .bottom) {
             Rectangle().fill(DS.hairline).frame(height: 1)
@@ -285,10 +300,10 @@ struct HomeLibraryView: View {
     private func sectionHeader(_ title: String, count: Int, symbol: String) -> some View {
         HStack(spacing: 7) {
             Image(systemName: symbol)
-                .font(.system(size: 9, weight: .medium))
+                .font(DS.font(9, .medium))
                 .foregroundStyle(DS.textQuaternary)
             Text(title)
-                .font(.system(size: 8.5, weight: .medium))
+                .font(DS.font(8.5, .medium))
                 .tracking(1.2)
                 .foregroundStyle(DS.textTertiary)
             Text("\(count)")
@@ -377,7 +392,7 @@ struct HomeLibraryView: View {
     private var folderOnlyHint: some View {
         HStack(spacing: 8) {
             Image(systemName: "photo")
-                .font(.system(size: 10, weight: .light))
+                .font(DS.font(10, .light))
                 .foregroundStyle(DS.textQuaternary)
             Text(T("当前层没有直接导入的照片；打开文件夹浏览其中的照片。",
                    "No loose photographs at this level. Open a folder to browse its photographs."))
@@ -390,10 +405,10 @@ struct HomeLibraryView: View {
     private var folderEmpty: some View {
         VStack(spacing: 11) {
             Image(systemName: "folder")
-                .font(.system(size: 26, weight: .light))
+                .font(DS.font(26, .light))
                 .foregroundStyle(DS.textQuaternary)
             Text(T("这个文件夹里没有照片", "This folder has no photographs"))
-                .font(.system(size: 13, weight: .medium))
+                .font(DS.font(13, .medium))
                 .foregroundStyle(DS.textSecondary)
             Text(T("放入受支持的图片或子文件夹后，重新打开文件夹即可刷新。",
                    "Add supported images or subfolders, then reopen the folder to refresh."))
@@ -417,10 +432,10 @@ struct HomeLibraryView: View {
     private var noResults: some View {
         VStack(spacing: 10) {
             Image(systemName: "line.3.horizontal.decrease.circle")
-                .font(.system(size: 22, weight: .light))
+                .font(DS.font(22, .light))
                 .foregroundStyle(DS.textQuaternary)
             Text(T("没有符合筛选的照片", "No photographs match the filter"))
-                .font(.system(size: 12, weight: .medium))
+                .font(DS.font(12, .medium))
                 .foregroundStyle(DS.textSecondary)
             Button(T("清除筛选与搜索", "Clear filters and search")) {
                 withAnimation(DS.easeQuick) {
@@ -438,12 +453,37 @@ struct HomeLibraryView: View {
 
     // MARK: Layout constants
 
-    private var photoColumns: [GridItem] {
-        [GridItem(.adaptive(minimum: 250, maximum: 360), spacing: 18)]
-    }
+    private var photoColumns: [GridItem] { libraryColumns }
 
-    private var folderColumns: [GridItem] {
-        [GridItem(.adaptive(minimum: 230, maximum: 330), spacing: 18)]
+    private var folderColumns: [GridItem] { libraryColumns }
+
+    /// One shared grid so folder rows and photo rows line up vertically.
+    private var libraryColumns: [GridItem] {
+        [GridItem(.adaptive(minimum: 240, maximum: 340), spacing: 18)]
+    }
+}
+
+// MARK: - Back button
+
+struct LibraryBackButton: View {
+    @State private var hovering = false
+
+    var body: some View {
+        Image(systemName: "chevron.left")
+            .font(DS.font(11, .semibold))
+            .foregroundStyle(hovering ? DS.accent : DS.textSecondary)
+            .frame(width: 30, height: 30)
+            .background(
+                RoundedRectangle(cornerRadius: DS.rSmall, style: .continuous)
+                    .fill(hovering ? DS.surface3 : DS.surface2)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: DS.rSmall, style: .continuous)
+                    .stroke(hovering ? DS.accent.opacity(0.35) : DS.hairline, lineWidth: 1)
+            )
+            .contentShape(RoundedRectangle(cornerRadius: DS.rSmall, style: .continuous))
+            .animation(DS.easeQuick, value: hovering)
+            .onHover { hovering = $0 }
     }
 }
 
@@ -462,11 +502,11 @@ struct LibraryFilterChip: View {
                     Circle().fill(label.color).frame(width: 6, height: 6)
                 } else if let symbol = filter.symbol {
                     Image(systemName: symbol)
-                        .font(.system(size: 8.5, weight: .medium))
+                        .font(DS.font(8.5, .medium))
                         .foregroundStyle(selected ? DS.accent : DS.textTertiary)
                 }
                 Text(filter.title)
-                    .font(.system(size: 9.5, weight: .medium))
+                    .font(DS.font(9.5, .medium))
                     .foregroundStyle(selected ? DS.textPrimary : DS.textSecondary)
                 let count = model.libraryFilterCount(filter)
                 if count > 0 {
@@ -504,16 +544,16 @@ struct LibraryMenuLabel: View {
     var body: some View {
         HStack(spacing: 5) {
             Image(systemName: symbol)
-                .font(.system(size: 9, weight: .medium))
+                .font(DS.font(9, .medium))
                 .foregroundStyle(hovering ? DS.accent : DS.textTertiary)
             Text(title)
-                .font(.system(size: 9.5, weight: .medium))
+                .font(DS.font(9.5, .medium))
                 .foregroundStyle(DS.textSecondary)
             Text(value)
-                .font(.system(size: 9))
+                .font(DS.font(9))
                 .foregroundStyle(DS.textQuaternary)
             Image(systemName: "chevron.down")
-                .font(.system(size: 6.5, weight: .semibold))
+                .font(DS.font(6.5, .semibold))
                 .foregroundStyle(DS.textQuaternary)
         }
         .padding(.horizontal, 8)
@@ -550,7 +590,7 @@ struct LibraryFolderCard: View {
                 HStack(alignment: .center, spacing: 10) {
                     VStack(alignment: .leading, spacing: 3) {
                         Text(folder.name)
-                            .font(.system(size: 12, weight: .medium))
+                            .font(DS.font(12, .medium))
                             .foregroundStyle(DS.textPrimary)
                             .lineLimit(1)
                         Text(folder.countText)
@@ -559,7 +599,7 @@ struct LibraryFolderCard: View {
                     }
                     Spacer(minLength: 4)
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 8, weight: .medium))
+                        .font(DS.font(8, .medium))
                         .foregroundStyle(hovering ? DS.accent : DS.textQuaternary)
                 }
                 .padding(.horizontal, 13)
@@ -596,7 +636,7 @@ struct LibraryFolderCard: View {
                     onRemove()
                 } label: {
                     Image(systemName: "folder.badge.minus")
-                        .font(.system(size: 10, weight: .medium))
+                        .font(DS.font(10, .medium))
                         .foregroundStyle(DS.textSecondary)
                         .frame(width: 24, height: 24)
                         .background(Circle().fill(DS.surface3.opacity(0.9)))
@@ -616,37 +656,39 @@ struct LibraryFolderCard: View {
     }
 
     private var folderThumb: some View {
-        ZStack {
-            DS.surface2
-            if let cover = folder.cover {
-                Image(decorative: cover, scale: 1)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .opacity(0.58)
-                LinearGradient(
-                    colors: [.black.opacity(0.18), .black.opacity(0.52)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            }
-            VStack(spacing: 7) {
-                Image(systemName: "folder.fill")
-                    .font(.system(size: 30, weight: .light))
-                    .foregroundStyle(DS.accent.opacity(0.9))
-                if folder.cover == nil {
-                    Text(T("文件夹", "Folder"))
-                        .font(.system(size: 8, weight: .medium))
-                        .tracking(0.8)
-                        .foregroundStyle(DS.textTertiary)
+        Color.clear
+            .aspectRatio(4.0 / 3.0, contentMode: .fit)
+            .overlay {
+                ZStack {
+                    DS.surface2
+                    if let cover = folder.cover {
+                        Image(decorative: cover, scale: 1)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .opacity(0.58)
+                        LinearGradient(
+                            colors: [.black.opacity(0.18), .black.opacity(0.52)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    }
+                    VStack(spacing: 7) {
+                        Image(systemName: "folder.fill")
+                            .font(DS.font(30, .light))
+                            .foregroundStyle(DS.accent.opacity(0.9))
+                        if folder.cover == nil {
+                            Text(T("文件夹", "Folder"))
+                                .font(DS.font(8, .medium))
+                                .tracking(0.8)
+                                .foregroundStyle(DS.textTertiary)
+                        }
+                    }
                 }
             }
-        }
-        .frame(maxWidth: .infinity)
-        .aspectRatio(1.55, contentMode: .fit)
-        .clipped()
-        .overlay(alignment: .bottom) {
-            Rectangle().fill(.white.opacity(0.06)).frame(height: 1)
-        }
+            .clipped()
+            .overlay(alignment: .bottom) {
+                Rectangle().fill(.white.opacity(0.06)).frame(height: 1)
+            }
     }
 }
 
@@ -672,15 +714,15 @@ struct LibraryFolderRow: View {
                             .opacity(0.55)
                     }
                     Image(systemName: "folder.fill")
-                        .font(.system(size: 14, weight: .light))
+                        .font(DS.font(14, .light))
                         .foregroundStyle(DS.accent.opacity(0.9))
                 }
-                .frame(width: 48, height: 34)
+                .frame(width: 48, height: 36)
                 .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(folder.name)
-                        .font(.system(size: 11.5, weight: .medium))
+                        .font(DS.font(11.5, .medium))
                         .foregroundStyle(DS.textPrimary)
                         .lineLimit(1)
                     Text(folder.countText)
@@ -689,7 +731,7 @@ struct LibraryFolderRow: View {
                 }
                 Spacer()
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 8.5, weight: .medium))
+                    .font(DS.font(8.5, .medium))
                     .foregroundStyle(DS.textQuaternary)
                     .padding(.trailing, 2)
                     .opacity(hovering ? 0 : 1)
@@ -706,7 +748,7 @@ struct LibraryFolderRow: View {
                     onRemove()
                 } label: {
                     Image(systemName: "folder.badge.minus")
-                        .font(.system(size: 10, weight: .medium))
+                        .font(DS.font(10, .medium))
                         .foregroundStyle(DS.textSecondary)
                         .frame(width: 24, height: 24)
                 }
@@ -764,6 +806,9 @@ struct LibraryPhotoCard: View {
         }
         .buttonStyle(PressableStyle(scale: 0.992))
         .onAppear { model.requestThumbnail(photo.id) }
+        .onChange(of: photo.thumbnail == nil) { _, missing in
+            if missing { model.requestThumbnail(photo.id) }
+        }
         .overlay(alignment: .topTrailing) {
             cardControls
                 .allowsHitTesting(hovering)
@@ -802,7 +847,7 @@ struct LibraryPhotoCard: View {
                         onRemove()
                     } label: {
                         Image(systemName: "rectangle.stack.badge.minus")
-                            .font(.system(size: 9.5, weight: .medium))
+                            .font(DS.font(9.5, .medium))
                             .foregroundStyle(DS.textSecondary)
                             .frame(width: 24, height: 24)
                             .background(Circle().fill(DS.surface3.opacity(0.9)))
@@ -813,7 +858,7 @@ struct LibraryPhotoCard: View {
                 }
             } else if photo.isFavorite {
                 Image(systemName: "star.fill")
-                    .font(.system(size: 9, weight: .semibold))
+                    .font(DS.font(9, .semibold))
                     .foregroundStyle(DS.accent)
                     .frame(width: 24, height: 24)
                     .background(Circle().fill(.black.opacity(0.34)))
@@ -824,72 +869,78 @@ struct LibraryPhotoCard: View {
     }
 
     private var thumbnail: some View {
-        ZStack {
-            DS.surface2
-            if let image = photo.thumbnail {
-                Image(decorative: image, scale: 1)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } else {
-                VStack(spacing: 9) {
-                    Image(systemName: "photo")
-                        .font(.system(size: 22, weight: .light))
-                        .foregroundStyle(DS.textQuaternary)
-                    Text(T("正在读取", "Loading"))
-                        .font(DS.label(9))
-                        .foregroundStyle(DS.textQuaternary)
+        Color.clear
+            .aspectRatio(4.0 / 3.0, contentMode: .fit)
+            .overlay {
+                ZStack {
+                    LinearGradient(
+                        colors: [DS.surface2, DS.surface3, DS.surface2],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    if let image = photo.thumbnail {
+                        Image(decorative: image, scale: 1)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                    } else {
+                        VStack(spacing: 9) {
+                            Image(systemName: "photo")
+                                .font(DS.font(22, .light))
+                                .foregroundStyle(DS.textQuaternary)
+                            Text(T("正在读取", "Loading"))
+                                .font(DS.label(9))
+                                .foregroundStyle(DS.textQuaternary)
+                        }
+                    }
+                    VStack {
+                        Spacer()
+                        LinearGradient(
+                            colors: [.clear, .black.opacity(0.58)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .frame(height: 74)
+                    }
+                    VStack {
+                        HStack(spacing: 5) {
+                            if let label = photo.colorLabel {
+                                Circle().fill(label.color).frame(width: 7, height: 7)
+                            }
+                            Text(model.stockLabel(for: photo).uppercased())
+                                .font(DS.font(8.5, .medium))
+                                .tracking(0.7)
+                                .foregroundStyle(DS.textPrimary.opacity(0.9))
+                                .lineLimit(1)
+                                .padding(.horizontal, 7)
+                                .frame(height: 19)
+                                .background(Capsule().fill(.black.opacity(0.32)))
+                                .overlay(Capsule().stroke(.white.opacity(0.10), lineWidth: 1))
+                            Spacer()
+                            if photo.edit.adjustments.activeCount > 0 {
+                                Text("\(photo.edit.adjustments.activeCount)")
+                                    .font(DS.mono(8.5))
+                                    .foregroundStyle(DS.accent)
+                                    .padding(.horizontal, 6)
+                                    .frame(height: 19)
+                                    .background(Capsule().fill(.black.opacity(0.32)))
+                            }
+                        }
+                        Spacer()
+                    }
+                    .padding(11)
                 }
             }
-            VStack {
-                Spacer()
-                LinearGradient(
-                    colors: [.clear, .black.opacity(0.58)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 74)
+            .clipped()
+            .overlay(alignment: .bottom) {
+                Rectangle().fill(.white.opacity(0.06)).frame(height: 1)
             }
-            VStack {
-                HStack(spacing: 5) {
-                    if let label = photo.colorLabel {
-                        Circle().fill(label.color).frame(width: 7, height: 7)
-                    }
-                    Text(model.stockLabel(for: photo).uppercased())
-                        .font(.system(size: 8.5, weight: .medium))
-                        .tracking(0.7)
-                        .foregroundStyle(DS.textPrimary.opacity(0.9))
-                        .lineLimit(1)
-                        .padding(.horizontal, 7)
-                        .frame(height: 19)
-                        .background(Capsule().fill(.black.opacity(0.32)))
-                        .overlay(Capsule().stroke(.white.opacity(0.10), lineWidth: 1))
-                    Spacer()
-                    if photo.edit.adjustments.activeCount > 0 {
-                        Text("\(photo.edit.adjustments.activeCount)")
-                            .font(DS.mono(8.5))
-                            .foregroundStyle(DS.accent)
-                            .padding(.horizontal, 6)
-                            .frame(height: 19)
-                            .background(Capsule().fill(.black.opacity(0.32)))
-                    }
-                }
-                Spacer()
-            }
-            .padding(11)
-        }
-        .frame(maxWidth: .infinity)
-        .aspectRatio(1.55, contentMode: .fit)
-        .clipped()
-        .overlay(alignment: .bottom) {
-            Rectangle().fill(.white.opacity(0.06)).frame(height: 1)
-        }
     }
 
     private var caption: some View {
         HStack(alignment: .center, spacing: 10) {
             VStack(alignment: .leading, spacing: 3) {
                 Text(photo.name)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(DS.font(12, .medium))
                     .foregroundStyle(DS.textPrimary)
                     .lineLimit(1)
                 Text(detailLine)
@@ -899,7 +950,7 @@ struct LibraryPhotoCard: View {
             }
             Spacer(minLength: 6)
             Image(systemName: "arrow.up.right")
-                .font(.system(size: 8.5, weight: .medium))
+                .font(DS.font(8.5, .medium))
                 .foregroundStyle(hovering ? DS.accent : DS.textQuaternary)
                 .frame(width: 18, height: 18)
                 .background(
@@ -950,16 +1001,16 @@ struct LibraryPhotoRow: View {
                             .aspectRatio(contentMode: .fill)
                     } else {
                         Image(systemName: "photo")
-                            .font(.system(size: 12, weight: .light))
+                            .font(DS.font(12, .light))
                             .foregroundStyle(DS.textQuaternary)
                     }
                 }
-                .frame(width: 56, height: 40)
+                .frame(width: 56, height: 42)
                 .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(photo.name)
-                        .font(.system(size: 11.5, weight: .medium))
+                        .font(DS.font(11.5, .medium))
                         .foregroundStyle(DS.textPrimary)
                         .lineLimit(1)
                     Text("\(model.stockLabel(for: photo)) · \(detailLine)")
@@ -980,12 +1031,12 @@ struct LibraryPhotoRow: View {
                         .frame(width: 74, alignment: .trailing)
                     if photo.isFavorite {
                         Image(systemName: "star.fill")
-                            .font(.system(size: 9, weight: .semibold))
+                            .font(DS.font(9, .semibold))
                             .foregroundStyle(DS.accent)
                             .frame(width: 20)
                     }
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 8.5, weight: .medium))
+                        .font(DS.font(8.5, .medium))
                         .foregroundStyle(DS.textQuaternary)
                         .padding(.trailing, 2)
                 }
@@ -1006,7 +1057,7 @@ struct LibraryPhotoRow: View {
                             onRemove()
                         } label: {
                             Image(systemName: "rectangle.stack.badge.minus")
-                                .font(.system(size: 9.5, weight: .medium))
+                                .font(DS.font(9.5, .medium))
                                 .foregroundStyle(DS.textSecondary)
                                 .frame(width: 24, height: 24)
                         }
@@ -1022,6 +1073,9 @@ struct LibraryPhotoRow: View {
             if value { model.requestThumbnail(photo.id) }
         }
         .onAppear { model.requestThumbnail(photo.id) }
+        .onChange(of: photo.thumbnail == nil) { _, missing in
+            if missing { model.requestThumbnail(photo.id) }
+        }
         .contextMenu {
             Button(T("进入显影", "Develop")) { model.openPhoto(photo.id) }
             Button(photo.isFavorite
@@ -1069,7 +1123,7 @@ struct LibraryFavoriteButton: View {
             model.toggleFavorite(photo.id)
         } label: {
             Image(systemName: photo.isFavorite ? "star.fill" : "star")
-                .font(.system(size: compact ? 9.5 : 10, weight: .medium))
+                .font(DS.font(compact ? 9.5 : 10, .medium))
                 .foregroundStyle(photo.isFavorite ? DS.accent : DS.textSecondary)
                 .frame(width: compact ? 24 : 24, height: compact ? 24 : 24)
                 .background(
@@ -1141,7 +1195,7 @@ struct LibraryGroupHeader: View {
     var body: some View {
         HStack(spacing: 7) {
             Text(title)
-                .font(.system(size: 10, weight: .medium))
+                .font(DS.font(10, .medium))
                 .foregroundStyle(DS.textSecondary)
                 .lineLimit(1)
             Text("\(count)")
@@ -1174,13 +1228,13 @@ struct LibraryEmptyState: View {
                     .fill(DS.accent.opacity(0.06))
                     .frame(width: 70, height: 70)
                 Image(systemName: "photo.on.rectangle.angled")
-                    .font(.system(size: 27, weight: .light))
+                    .font(DS.font(27, .light))
                     .foregroundStyle(DS.accent)
             }
             .padding(.bottom, 30)
 
             Text(T("照片库还是空的", "Your library is empty"))
-                .font(.system(size: 25, weight: .medium))
+                .font(DS.font(25, .medium))
                 .foregroundStyle(DS.textPrimary)
                 .padding(.bottom, 9)
 
@@ -1236,9 +1290,9 @@ struct ImportPhotoButton: View {
         } label: {
             HStack(spacing: 7) {
                 Image(systemName: "plus")
-                    .font(.system(size: large ? 11 : 9.5, weight: .semibold))
+                    .font(DS.font(large ? 11 : 9.5, .semibold))
                 Text(title)
-                    .font(.system(size: large ? 12.5 : 11, weight: .medium))
+                    .font(DS.font(large ? 12.5 : 11, .medium))
             }
             .foregroundStyle(Color(hex: 0x14120E))
             .padding(.horizontal, large ? 18 : 13)
@@ -1267,9 +1321,9 @@ struct FolderImportButton: View {
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: "folder.badge.plus")
-                    .font(.system(size: large ? 10.5 : 9, weight: .medium))
+                    .font(DS.font(large ? 10.5 : 9, .medium))
                 Text(T("导入文件夹", "Import folder"))
-                    .font(.system(size: large ? 12 : 10.5, weight: .medium))
+                    .font(DS.font(large ? 12 : 10.5, .medium))
             }
             .foregroundStyle(hovering ? DS.textPrimary : DS.textSecondary)
             .padding(.horizontal, large ? 14 : 10)

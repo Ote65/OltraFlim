@@ -100,6 +100,9 @@ cp "$ROOT/Resources/LUT_NOTICE.md" "$APP/Contents/Resources/LUT_NOTICE.md"
 if [[ -f "$ROOT/Resources/AppIcon.icns" ]]; then
   cp "$ROOT/Resources/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
 fi
+if [[ -f "$ROOT/Resources/LogoMark.png" ]]; then
+  cp "$ROOT/Resources/LogoMark.png" "$APP/Contents/Resources/LogoMark.png"
+fi
 if [[ -f "$ROOT/Resources/SPEKTRAFILM_LICENSE.txt" ]]; then
   cp "$ROOT/Resources/SPEKTRAFILM_LICENSE.txt" "$APP/Contents/Resources/SPEKTRAFILM_LICENSE.txt"
 fi

@@ -8,7 +8,7 @@ struct FilmstripView: View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(T("照片", "PHOTOS"))
-                    .font(.system(size: 8.5, weight: .medium))
+                    .font(DS.font(8.5, .medium))
                     .tracking(1.4)
                     .foregroundStyle(DS.textTertiary)
                 Text("\(model.collectionPhotos.count)")
@@ -18,7 +18,7 @@ struct FilmstripView: View {
             .frame(width: 44, alignment: .leading)
 
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 7) {
+                LazyHStack(spacing: 7) {
                     ForEach(model.collectionPhotos) { photo in
                         PhotoStripTile(
                             photo: photo,
@@ -58,35 +58,55 @@ struct PhotoStripTile: View {
         Button {
             model.selectPhoto(photo.id)
         } label: {
-            VStack(alignment: .leading, spacing: 4) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 4, style: .continuous)
-                        .fill(DS.surface2)
-                    if let thumbnail = photo.thumbnail {
-                        Image(decorative: thumbnail, scale: 1)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    } else {
-                        Image(systemName: "photo")
-                            .font(.system(size: 12, weight: .light))
-                            .foregroundStyle(DS.textQuaternary)
-                    }
+            ZStack(alignment: .bottom) {
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(DS.surface2)
+                if let thumbnail = photo.thumbnail {
+                    Image(decorative: thumbnail, scale: 1)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } else {
+                    Image(systemName: "photo")
+                        .font(DS.font(12, .light))
+                        .foregroundStyle(DS.textQuaternary)
                 }
-                .frame(width: 64, height: 42)
-                .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 4, style: .continuous)
-                        .stroke(selected ? DS.accent.opacity(0.7) : (hovering ? DS.hairlineStrong : DS.hairline), lineWidth: 1)
-                )
-                Text(photo.name)
-                    .font(.system(size: 8))
-                    .foregroundStyle(selected ? DS.textSecondary : DS.textQuaternary)
-                    .lineLimit(1)
-                    .frame(width: 64, alignment: .leading)
+                if hovering {
+                    Text(photo.name)
+                        .font(DS.font(7.5))
+                        .foregroundStyle(Color.white.opacity(0.85))
+                        .lineLimit(1)
+                        .padding(.horizontal, 4)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .frame(height: 15)
+                        .background(
+                            LinearGradient(
+                                colors: [.clear, .black.opacity(0.72)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .transition(.opacity)
+                }
             }
+            .frame(width: 66, height: 46)
+            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .stroke(selected ? DS.accent : (hovering ? DS.hairlineStrong : DS.hairline),
+                            lineWidth: selected ? 2 : 1)
+            )
+            .shadow(color: .black.opacity(hovering ? 0.42 : 0), radius: 8, y: 4)
+            .offset(y: hovering ? -2 : 0)
         }
         .buttonStyle(.plain)
-        .onHover { hovering = $0 }
+        .onAppear { model.requestThumbnail(photo.id) }
+        .onChange(of: photo.thumbnail == nil) { _, missing in
+            if missing { model.requestThumbnail(photo.id) }
+        }
+        .onHover { value in
+            withAnimation(DS.easeQuick) { hovering = value }
+        }
+        .animation(DS.snappy, value: selected)
         .contextMenu {
             Button(T("在访达中显示", "Reveal in Finder")) {
                 NSWorkspace.shared.activateFileViewerSelecting([photo.url])
@@ -108,26 +128,26 @@ struct AddPhotoTile: View {
         Button {
             model.chooseFiles()
         } label: {
-            VStack(spacing: 4) {
+            ZStack {
                 RoundedRectangle(cornerRadius: 4, style: .continuous)
                     .fill(hovering ? DS.surface3 : DS.surface2)
-                    .frame(width: 64, height: 42)
                     .overlay(
                         Image(systemName: "plus")
-                            .font(.system(size: 12, weight: .medium))
+                            .font(DS.font(12, .medium))
                             .foregroundStyle(hovering ? DS.accent : DS.textTertiary)
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 4, style: .continuous)
                             .stroke(DS.hairline, lineWidth: 1)
                     )
-                Text(T("导入", "Import"))
-                    .font(.system(size: 8))
-                    .foregroundStyle(DS.textQuaternary)
             }
+            .frame(width: 66, height: 46)
+            .offset(y: hovering ? -2 : 0)
         }
         .buttonStyle(.plain)
-        .onHover { hovering = $0 }
+        .onHover { value in
+            withAnimation(DS.easeQuick) { hovering = value }
+        }
         .help(T("继续导入照片", "Import more photographs"))
     }
 }

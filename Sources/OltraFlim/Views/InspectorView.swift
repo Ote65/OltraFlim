@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 enum InspectorTab: String, CaseIterable, Identifiable {
     case light
@@ -37,7 +38,7 @@ struct InspectorView: View {
         VStack(spacing: 0) {
             header
             ScrollView {
-                VStack(spacing: 14) {
+                VStack(spacing: 10) {
                     histogram
                     if model.currentImportedLUT != nil {
                         ImportedLookCard()
@@ -46,6 +47,16 @@ struct InspectorView: View {
                     }
                     tabBar
                     tabContent
+                        .padding(12)
+                        .background(
+                            RoundedRectangle(cornerRadius: DS.rMedium, style: .continuous)
+                                .fill(DS.surface2)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: DS.rMedium, style: .continuous)
+                                .stroke(DS.hairline, lineWidth: 1)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: DS.rMedium, style: .continuous))
                     transparencySection
                     detailSection
                     textureSection
@@ -57,50 +68,14 @@ struct InspectorView: View {
                 .padding(.bottom, 24)
             }
             .scrollIndicators(.never)
-            actionBar
         }
         .background(DS.surface1)
     }
 
-    /// Fixed footer at the bottom-right of the window. Reset / Export /
-    /// Settings live here so the top bar stays a quiet title strip.
-    private var actionBar: some View {
-        HStack(spacing: 8) {
-            Spacer(minLength: 0)
-            Button {
-                model.resetAll()
-            } label: {
-                CompactBarButton(title: T("重置", "Reset"), symbol: "arrow.uturn.backward", accent: false)
-            }
-            .buttonStyle(PressableStyle())
-            .disabled(model.currentPhoto == nil)
-            .opacity(model.currentPhoto == nil ? 0.4 : 1)
-            .help(T("重置胶片与所有调整", "Reset film and all adjustments"))
-
-            Button {
-                model.exportPresented = true
-            } label: {
-                CompactBarButton(title: T("导出", "Export"), symbol: "square.and.arrow.up", accent: true)
-            }
-            .buttonStyle(PressableStyle())
-            .disabled(model.currentPhoto == nil || model.isExporting)
-            .opacity(model.currentPhoto == nil ? 0.4 : 1)
-            .help(T("导出当前照片（⌘E）", "Export the developed photograph (⌘E)"))
-
-            SettingsGear()
-        }
-        .padding(.horizontal, 16)
-        .frame(height: 54)
-        .background(DS.surface0)
-        .overlay(alignment: .top) {
-            Rectangle().fill(DS.hairlineStrong).frame(height: 1)
-        }
-    }
-
     private var header: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 6) {
             Text(T("显影", "DEVELOP"))
-                .font(.system(size: 10, weight: .medium))
+                .font(DS.font(10, .medium))
                 .tracking(1.7)
                 .foregroundStyle(DS.textSecondary)
             if model.currentEdit.adjustments.activeCount > 0 {
@@ -111,9 +86,34 @@ struct InspectorView: View {
                     .padding(.vertical, 1.5)
                     .background(Capsule().fill(DS.accent.opacity(0.1)))
             }
-            Spacer()
+            Spacer(minLength: 6)
+            Button {
+                model.resetAll()
+            } label: {
+                HeaderActionButton(title: T("重置", "Reset"),
+                                   symbol: "arrow.uturn.backward",
+                                   accent: false)
+            }
+            .buttonStyle(PressableStyle())
+            .disabled(model.currentPhoto == nil)
+            .opacity(model.currentPhoto == nil ? 0.4 : 1)
+            .help(T("重置胶片与所有调整", "Reset film and all adjustments"))
+
+            Button {
+                model.exportPresented = true
+            } label: {
+                HeaderActionButton(title: T("导出", "Export"),
+                                   symbol: "square.and.arrow.up",
+                                   accent: true)
+            }
+            .buttonStyle(PressableStyle())
+            .disabled(model.currentPhoto == nil || model.isExporting)
+            .opacity(model.currentPhoto == nil ? 0.4 : 1)
+            .help(T("导出当前照片（⌘E）", "Export the developed photograph (⌘E)"))
+
+            SettingsGear()
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 14)
         .frame(height: 50)
         .background(DS.surface1)
         .overlay(alignment: .bottom) {
@@ -125,13 +125,13 @@ struct InspectorView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(T("直方图", "HISTOGRAM"))
-                    .font(.system(size: 8.5, weight: .medium))
+                    .font(DS.font(8.5, .medium))
                     .tracking(1.3)
                     .foregroundStyle(DS.textTertiary)
                 Spacer()
                 if model.currentPhoto != nil {
                     Text(T("亮度 / RGB", "LUMA / RGB"))
-                        .font(.system(size: 7.5, weight: .medium))
+                        .font(DS.font(7.5, .medium))
                         .tracking(0.8)
                         .foregroundStyle(DS.textQuaternary)
                 }
@@ -159,11 +159,12 @@ struct InspectorView: View {
                     withAnimation(DS.snappy) { model.inspectorTab = tab }
                 } label: {
                     Text(tab.title)
-                        .font(.system(size: 9.5, weight: model.inspectorTab == tab ? .medium : .regular))
+                        .font(DS.font(9.5, model.inspectorTab == tab ? .medium : .regular))
                         .tracking(0.7)
                         .foregroundStyle(model.inspectorTab == tab ? DS.accent : DS.textTertiary)
                         .frame(maxWidth: .infinity)
                         .frame(height: 27)
+                        .contentShape(Rectangle())
                         .background {
                             if model.inspectorTab == tab {
                                 RoundedRectangle(cornerRadius: 6, style: .continuous)
@@ -225,6 +226,10 @@ struct InspectorView: View {
                       valueText: signed(model.currentAdjustments.whites), defaultValue: 0)
             SliderRow(label: T("黑色", "Blacks"), value: binding(\.blacks), range: -100...100,
                       valueText: signed(model.currentAdjustments.blacks), defaultValue: 0)
+            SliderRow(label: T("中间调", "Midtones"), value: binding(\.midtones), range: -100...100,
+                      valueText: signed(model.currentAdjustments.midtones), defaultValue: 0)
+            SliderRow(label: T("高光过渡", "Highlight rolloff"), value: binding(\.highlightRolloff), range: 0...100,
+                      valueText: "\(Int(model.currentAdjustments.highlightRolloff))", defaultValue: 0)
         }
         .padding(.top, 2)
     }
@@ -270,13 +275,14 @@ struct InspectorView: View {
     private var transparencySection: some View {
         CollapsibleSection(
             title: T("通透", "TRANSPARENCY"),
+            count: clarityActiveCount,
             open: $transparencyOpen,
             trailing: {
                 Button {
                     model.analyzeTone()
                 } label: {
                     Text(T("分析", "ANALYZE"))
-                        .font(.system(size: 8.5, weight: .semibold))
+                        .font(DS.font(8.5, .semibold))
                         .tracking(0.6)
                         .foregroundStyle(model.currentPhoto == nil ? DS.textQuaternary : DS.accent)
                         .padding(.horizontal, 6)
@@ -345,7 +351,7 @@ struct InspectorView: View {
     }
 
     private var detailSection: some View {
-        CollapsibleSection(title: T("细节", "DETAIL"), open: $detailOpen) {
+        CollapsibleSection(title: T("细节", "DETAIL"), count: detailActiveCount, open: $detailOpen) {
             VStack(spacing: 3) {
                 SliderRow(label: T("清晰度", "Clarity"), value: binding(\.clarity), range: -100...100,
                           valueText: signed(model.currentAdjustments.clarity), defaultValue: 0)
@@ -356,34 +362,63 @@ struct InspectorView: View {
     }
 
     private var textureSection: some View {
-        CollapsibleSection(title: T("胶片质感", "FILM TEXTURE"), open: $textureOpen) {
-            VStack(spacing: 3) {
+        CollapsibleSection(title: T("胶片质感", "FILM TEXTURE"), count: textureActiveCount, open: $textureOpen) {
+            VStack(alignment: .leading, spacing: 3) {
+                InspectorGroupLabel(title: T("颗粒", "GRAIN"))
                 SliderRow(label: T("颗粒", "Grain"), value: binding(\.grain), range: 0...100,
                           valueText: "\(Int(model.currentAdjustments.grain))", defaultValue: 0)
                 SliderRow(label: T("颗粒尺寸", "Grain size"), value: binding(\.grainSize), range: 0...100,
                           valueText: "\(Int(model.currentAdjustments.grainSize))", defaultValue: 38,
                           dimmed: model.currentAdjustments.grain == 0)
-                SliderRow(label: T("彩噪颗粒", "Color grain"), value: binding(\.grainChroma), range: 0...100,
+                SliderRow(label: T("颗粒粗糙度", "Grain roughness"), value: binding(\.grainRoughness), range: 0...100,
+                          valueText: "\(Int(model.currentAdjustments.grainRoughness))", defaultValue: 50,
+                          dimmed: model.currentAdjustments.grain == 0)
+                SliderRow(label: T("彩色颗粒", "Color grain"), value: binding(\.grainChroma), range: 0...100,
                           valueText: "\(Int(model.currentAdjustments.grainChroma))", defaultValue: 0,
                           dimmed: model.currentAdjustments.grain == 0)
-                SliderRow(label: T("阴影颗粒", "Shadow grain"), value: binding(\.grainShadow), range: 0...100,
+                SliderRow(label: T("暗部颗粒", "Shadow grain"), value: binding(\.grainShadow), range: 0...100,
                           valueText: "\(Int(model.currentAdjustments.grainShadow))", defaultValue: 0,
                           dimmed: model.currentAdjustments.grain == 0)
+
+                InspectorGroupLabel(title: T("光晕 / 柔光", "GLOW"))
+                    .padding(.top, 5)
                 SliderRow(label: T("光晕", "Halation"), value: binding(\.halation), range: 0...100,
                           valueText: "\(Int(model.currentAdjustments.halation))", defaultValue: 0)
-                SliderRow(label: T("光晕阈值", "Halation threshold"), value: binding(\.halationThreshold), range: 0...100,
+                SliderRow(label: T("高光阈值", "Highlight threshold"), value: binding(\.halationThreshold), range: 0...100,
                           valueText: "\(Int(model.currentAdjustments.halationThreshold))", defaultValue: 55,
-                          dimmed: model.currentAdjustments.halation == 0)
-                SliderRow(label: T("光晕半径", "Halation radius"), value: binding(\.halationRadius), range: 0...100,
+                          dimmed: model.currentAdjustments.halation == 0 && model.currentAdjustments.bloom == 0)
+                SliderRow(label: T("扩散半径", "Glow radius"), value: binding(\.halationRadius), range: 0...100,
                           valueText: "\(Int(model.currentAdjustments.halationRadius))", defaultValue: 50,
-                          dimmed: model.currentAdjustments.halation == 0)
+                          dimmed: model.currentAdjustments.halation == 0 && model.currentAdjustments.bloom == 0)
                 SliderRow(label: T("光晕暖度", "Halation warmth"), value: binding(\.halationWarmth), range: 0...100,
                           valueText: "\(Int(model.currentAdjustments.halationWarmth))", defaultValue: 75,
                           dimmed: model.currentAdjustments.halation == 0)
+                SliderRow(label: T("柔光", "Bloom"), value: binding(\.bloom), range: 0...100,
+                          valueText: "\(Int(model.currentAdjustments.bloom))", defaultValue: 0)
+
+                InspectorGroupLabel(title: T("暗角", "VIGNETTE"))
+                    .padding(.top, 5)
                 SliderRow(label: T("暗角", "Vignette"), value: binding(\.vignette), range: -100...100,
                           valueText: signed(model.currentAdjustments.vignette), defaultValue: 0)
+                SliderRow(label: T("中点", "Midpoint"), value: binding(\.vignetteMidpoint), range: 0...100,
+                          valueText: "\(Int(model.currentAdjustments.vignetteMidpoint))", defaultValue: 50,
+                          dimmed: model.currentAdjustments.vignette == 0)
+                SliderRow(label: T("圆度", "Roundness"), value: binding(\.vignetteRoundness), range: -100...100,
+                          valueText: signed(model.currentAdjustments.vignetteRoundness), defaultValue: 0,
+                          dimmed: model.currentAdjustments.vignette == 0)
+                SliderRow(label: T("柔和度", "Feather"), value: binding(\.vignetteFeather), range: 0...100,
+                          valueText: "\(Int(model.currentAdjustments.vignetteFeather))", defaultValue: 50,
+                          dimmed: model.currentAdjustments.vignette == 0)
+                SliderRow(label: T("中心 X", "Center X"), value: binding(\.vignetteCenterX), range: -100...100,
+                          valueText: signed(model.currentAdjustments.vignetteCenterX), defaultValue: 0,
+                          dimmed: model.currentAdjustments.vignette == 0)
+                SliderRow(label: T("中心 Y", "Center Y"), value: binding(\.vignetteCenterY), range: -100...100,
+                          valueText: signed(model.currentAdjustments.vignetteCenterY), defaultValue: 0,
+                          dimmed: model.currentAdjustments.vignette == 0)
+
                 SliderRow(label: T("褪色", "Fade"), value: binding(\.fade), range: 0...100,
                           valueText: "\(Int(model.currentAdjustments.fade))", defaultValue: 0)
+                    .padding(.top, 5)
             }
         }
     }
@@ -422,18 +457,162 @@ struct InspectorView: View {
     private func signed(_ value: Double) -> String {
         value >= 0 ? "+\(Int(round(value)))" : "\(Int(round(value)))"
     }
+
+    private var clarityActiveCount: Int {
+        let a = model.currentAdjustments
+        return (a.tonalTransparency > 0 ? 1 : 0) + (a.colorTransparency > 0 ? 1 : 0)
+    }
+
+    private var detailActiveCount: Int {
+        let a = model.currentAdjustments
+        return (abs(a.clarity) > 0.01 ? 1 : 0) + (a.sharpen > 0.01 ? 1 : 0)
+    }
+
+    private var textureActiveCount: Int {
+        let a = model.currentAdjustments
+        var count = 0
+        if a.grain > 0 {
+            count += 1
+            if abs(a.grainSize - 38) > 0.01 { count += 1 }
+            if abs(a.grainRoughness - 50) > 0.01 { count += 1 }
+            if a.grainChroma > 0 { count += 1 }
+            if a.grainShadow > 0 { count += 1 }
+        }
+        if a.halation > 0 {
+            count += 1
+            if abs(a.halationThreshold - 55) > 0.01 { count += 1 }
+            if abs(a.halationRadius - 50) > 0.01 { count += 1 }
+            if abs(a.halationWarmth - 75) > 0.01 { count += 1 }
+        }
+        if a.bloom > 0 { count += 1 }
+        if a.vignette != 0 {
+            count += 1
+            if abs(a.vignetteMidpoint - 50) > 0.01 { count += 1 }
+            if abs(a.vignetteRoundness) > 0.01 { count += 1 }
+            if abs(a.vignetteFeather - 50) > 0.01 { count += 1 }
+            if abs(a.vignetteCenterX) > 0.01 { count += 1 }
+            if abs(a.vignetteCenterY) > 0.01 { count += 1 }
+        }
+        if a.fade > 0 { count += 1 }
+        return count
+    }
 }
 
 struct InspectorGroupLabel: View {
     let title: String
     var body: some View {
         Text(title)
-            .font(.system(size: 8, weight: .medium))
+            .font(DS.font(8, .medium))
             .tracking(1.1)
             .foregroundStyle(DS.textQuaternary)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.top, 2)
             .padding(.bottom, 1)
+    }
+}
+
+// MARK: - Header actions
+
+struct HeaderActionButton: View {
+    let title: String
+    let symbol: String
+    let accent: Bool
+    @State private var hovering = false
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: symbol)
+                .font(DS.font(8.5, .semibold))
+            Text(title)
+                .font(DS.font(9.5, .medium))
+        }
+        .foregroundStyle(accent ? Color(hex: 0x14120E) : DS.textPrimary)
+        .padding(.horizontal, 8)
+        .frame(height: 24)
+        .background(
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(accent ? (hovering ? DS.accentStrong : DS.accent) : (hovering ? DS.surface3 : DS.surface2))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .stroke(accent ? .clear : DS.hairline, lineWidth: 1)
+        )
+        .contentShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+        .animation(DS.easeQuick, value: hovering)
+        .onHover { hovering = $0 }
+    }
+}
+
+// MARK: - Horizontal wheel scroller
+
+/// A single-line horizontal row that also scrolls with a plain vertical wheel
+/// while the pointer is over it, so chips pushed past the right edge stay
+/// reachable without a trackpad swipe.
+struct HorizontalWheelScroll<Content: View>: NSViewRepresentable {
+    var height: CGFloat = 24
+    var content: Content
+
+    init(height: CGFloat = 24, @ViewBuilder content: () -> Content) {
+        self.height = height
+        self.content = content()
+    }
+
+    func makeNSView(context: Context) -> WheelScrollView {
+        let scroll = WheelScrollView()
+        scroll.drawsBackground = false
+        scroll.hasHorizontalScroller = false
+        scroll.hasVerticalScroller = false
+        scroll.horizontalScrollElasticity = .allowed
+        scroll.verticalScrollElasticity = .none
+        scroll.autohidesScrollers = true
+        let host = NSHostingView(rootView: content)
+        host.autoresizingMask = [.height]
+        scroll.documentView = host
+        context.coordinator.host = host
+        return scroll
+    }
+
+    func updateNSView(_ scroll: WheelScrollView, context: Context) {
+        guard let host = context.coordinator.host else { return }
+        host.rootView = content
+        host.layoutSubtreeIfNeeded()
+        var fitting = host.fittingSize
+        if fitting.width < 1 { fitting.width = 600 }
+        host.frame = NSRect(x: 0, y: 0, width: fitting.width, height: max(fitting.height, height))
+        scroll.tile()
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    final class Coordinator {
+        var host: NSHostingView<Content>?
+    }
+}
+
+final class WheelScrollView: NSScrollView {
+    override func layout() {
+        super.layout()
+        guard let document = documentView else { return }
+        if document.frame.height < contentSize.height {
+            document.frame.size.height = contentSize.height
+        }
+    }
+
+    override func scrollWheel(with event: NSEvent) {
+        let maxX = max(0, (documentView?.frame.width ?? 0) - contentView.bounds.width)
+        guard maxX > 0.5 else {
+            // Nothing to scroll sideways: let the inspector scroll normally.
+            super.scrollWheel(with: event)
+            return
+        }
+        let delta = event.scrollingDeltaY
+        guard abs(delta) > 0.001 else { return }
+        let step: CGFloat = event.hasPreciseScrollingDeltas ? 1.4 : 14
+        var origin = contentView.bounds.origin
+        origin.x -= delta * step
+        origin.x = min(max(0, origin.x), maxX)
+        contentView.scroll(to: origin)
+        reflectScrolledClipView(contentView)
     }
 }
 
@@ -443,41 +622,39 @@ struct LookCard: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 9) {
             if let stock = model.currentStock, let look = model.currentLook {
-                HStack(spacing: 10) {
+                HStack(spacing: 11) {
                     lookThumbnail(stock: stock, look: look)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(stock.name)
-                            .font(.system(size: 14, weight: .medium))
+                            .font(DS.font(14, .semibold))
                             .foregroundStyle(DS.textPrimary)
                             .lineLimit(1)
                         Text(stock.typeLine)
-                            .font(DS.label(9))
+                            .font(DS.label(10))
                             .foregroundStyle(DS.textTertiary)
                         HStack(spacing: 5) {
                             Text(stock.brand.uppercased())
-                                .font(.system(size: 7.5, weight: .semibold))
+                                .font(DS.font(7.5, .semibold))
                                 .tracking(0.9)
                                 .foregroundStyle(DS.accent.opacity(0.85))
                             Rectangle().fill(DS.hairlineStrong).frame(width: 1, height: 8)
                             Text(look.engine)
-                                .font(.system(size: 8, weight: .regular))
+                                .font(DS.font(8, .regular))
                                 .foregroundStyle(DS.textQuaternary)
                         }
-                        .padding(.top, 2)
+                        .padding(.top, 3)
                     }
                     Spacer(minLength: 0)
                 }
 
-                Rectangle().fill(DS.hairline).frame(height: 1)
-
                 VStack(alignment: .leading, spacing: 6) {
                     Text(T("相纸 / 渲染", "PRINT / RENDER"))
-                        .font(.system(size: 8, weight: .medium))
+                        .font(DS.font(8, .medium))
                         .tracking(1.1)
                         .foregroundStyle(DS.textQuaternary)
-                    ScrollView(.horizontal, showsIndicators: false) {
+                    HorizontalWheelScroll(height: 24) {
                         HStack(spacing: 5) {
                             ForEach(stock.variants) { variant in
                                 VariantChip(
@@ -490,13 +667,17 @@ struct LookCard: View {
                             }
                         }
                         .padding(.vertical, 1)
+                        .padding(.trailing, 4)
                     }
+                    .frame(height: 24)
                 }
+
+                Rectangle().fill(DS.hairline).frame(height: 1)
 
                 VStack(spacing: 5) {
                     HStack {
                         Text(T("胶片强度", "Film strength"))
-                            .font(.system(size: 10.5, weight: .regular))
+                            .font(DS.font(10.5, .regular))
                             .foregroundStyle(DS.textSecondary)
                         Spacer()
                         Text("\(Int(round(model.currentEdit.strength * 100)))%")
@@ -511,7 +692,7 @@ struct LookCard: View {
                         in: 0...1
                     )
                     .tint(DS.accent)
-                    .controlSize(.mini)
+                    .controlSize(.small)
                     .disabled(model.currentPhoto == nil)
                     .accessibilityLabel(T("胶片强度", "Film strength"))
                 }
@@ -523,12 +704,12 @@ struct LookCard: View {
         }
         .padding(11)
         .background(
-            RoundedRectangle(cornerRadius: 11, style: .continuous)
-                .fill(DS.surface2)
+            RoundedRectangle(cornerRadius: DS.rMedium, style: .continuous)
+                .fill(DS.surface3)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 11, style: .continuous)
-                .stroke(DS.hairline, lineWidth: 1)
+            RoundedRectangle(cornerRadius: DS.rMedium, style: .continuous)
+                .stroke(DS.hairlineStrong, lineWidth: 1)
         )
     }
 
@@ -549,11 +730,11 @@ struct LookCard: View {
                 )
             }
         }
-        .frame(width: 82, height: 56)
-        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+        .frame(width: 64, height: 64)
+        .clipShape(RoundedRectangle(cornerRadius: DS.rSmall, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .stroke(Color.white.opacity(0.05), lineWidth: 1)
+            RoundedRectangle(cornerRadius: DS.rSmall, style: .continuous)
+                .stroke(Color.white.opacity(0.08), lineWidth: 1)
         )
     }
 }
@@ -576,7 +757,7 @@ struct ImportedLookCard: View {
                     )
                     VStack(alignment: .leading, spacing: 2) {
                         Text(lut.name)
-                            .font(.system(size: 14, weight: .medium))
+                            .font(DS.font(14, .medium))
                             .foregroundStyle(DS.textPrimary)
                             .lineLimit(1)
                         Text(lut.subtitle)
@@ -584,12 +765,12 @@ struct ImportedLookCard: View {
                             .foregroundStyle(DS.textTertiary)
                         HStack(spacing: 5) {
                             Text("LUT")
-                                .font(.system(size: 7.5, weight: .semibold))
+                                .font(DS.font(7.5, .semibold))
                                 .tracking(0.9)
                                 .foregroundStyle(DS.accent.opacity(0.85))
                             Rectangle().fill(DS.hairlineStrong).frame(width: 1, height: 8)
                             Text(T("Rec.709 显示", "Rec.709 display"))
-                                .font(.system(size: 8))
+                                .font(DS.font(8))
                                 .foregroundStyle(DS.textQuaternary)
                         }
                         .padding(.top, 2)
@@ -599,7 +780,7 @@ struct ImportedLookCard: View {
                         model.clearLUT()
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 8, weight: .semibold))
+                            .font(DS.font(8, .semibold))
                             .foregroundStyle(DS.textTertiary)
                             .frame(width: 21, height: 21)
                             .background(Circle().fill(DS.surface1))
@@ -613,7 +794,7 @@ struct ImportedLookCard: View {
                 VStack(spacing: 5) {
                     HStack {
                         Text(T("LUT 强度", "LUT strength"))
-                            .font(.system(size: 10.5, weight: .regular))
+                            .font(DS.font(10.5, .regular))
                             .foregroundStyle(DS.textSecondary)
                         Spacer()
                         Text("\(Int(round(model.currentEdit.lutStrength * 100)))%")
@@ -662,9 +843,9 @@ struct VariantChip: View {
         Button(action: action) {
             HStack(spacing: 4) {
                 Text(variant.localizedLabel)
-                    .font(.system(size: 9, weight: selected ? .medium : .regular))
+                    .font(DS.font(9, selected ? .medium : .regular))
                 Text(variant.engineShort)
-                    .font(.system(size: 6.5, weight: .semibold))
+                    .font(DS.font(6.5, .semibold))
                     .tracking(0.4)
                     .foregroundStyle(selected ? DS.accent.opacity(0.75) : DS.textQuaternary)
             }
@@ -684,6 +865,8 @@ struct VariantChip: View {
         .disabled(!enabled)
         .opacity(enabled ? 1 : 0.55)
         .onHover { hovering = $0 }
+        .animation(DS.easeQuick, value: hovering)
+        .animation(DS.snappy, value: selected)
         .help(variant.displayRequirement ?? variant.engine)
     }
 }
@@ -692,14 +875,16 @@ struct VariantChip: View {
 
 struct CollapsibleSection<Content: View, Trailing: View>: View {
     let title: String
+    var count: Int = 0
     @Binding var open: Bool
     @ViewBuilder var trailing: Trailing
     @ViewBuilder var content: Content
 
-    init(title: String, open: Binding<Bool>,
+    init(title: String, count: Int = 0, open: Binding<Bool>,
          @ViewBuilder trailing: () -> Trailing,
          @ViewBuilder content: () -> Content) {
         self.title = title
+        self.count = count
         self._open = open
         self.trailing = trailing()
         self.content = content()
@@ -707,44 +892,62 @@ struct CollapsibleSection<Content: View, Trailing: View>: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
                 Button {
                     withAnimation(DS.snappy) { open.toggle() }
                 } label: {
-                    HStack(spacing: 6) {
+                    HStack(spacing: 8) {
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 7.5, weight: .semibold))
-                            .foregroundStyle(DS.textTertiary)
+                            .font(DS.font(8, .semibold))
+                            .foregroundStyle(open ? DS.accent : DS.textTertiary)
                             .rotationEffect(.degrees(open ? 90 : 0))
+                            .frame(width: 9)
                         Text(title)
-                            .font(.system(size: 9, weight: .medium))
+                            .font(DS.font(9.5, .medium))
                             .tracking(1.1)
-                            .foregroundStyle(DS.textSecondary)
+                            .foregroundStyle(open ? DS.textSecondary : DS.textTertiary)
+                        Spacer(minLength: 0)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                Spacer()
+                if count > 0 {
+                    Text("\(count)")
+                        .font(DS.mono(8.5))
+                        .foregroundStyle(DS.accent)
+                        .transition(.opacity.combined(with: .scale(scale: 0.8)))
+                }
                 trailing
             }
-            .frame(height: 26)
+            .padding(.horizontal, 12)
+            .frame(height: 34)
+            .animation(DS.easeQuick, value: count)
+
             if open {
                 content
-                    .padding(.top, 5)
-                    .padding(.bottom, 4)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 2)
+                    .padding(.bottom, 11)
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .overlay(alignment: .bottom) {
-            Rectangle().fill(DS.hairline).frame(height: 1)
-        }
-        .clipped()
+        .background(
+            RoundedRectangle(cornerRadius: DS.rMedium, style: .continuous)
+                .fill(DS.surface2)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: DS.rMedium, style: .continuous)
+                .stroke(DS.hairline, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: DS.rMedium, style: .continuous))
+        .animation(DS.snappy, value: open)
     }
 }
 
 extension CollapsibleSection where Trailing == EmptyView {
-    init(title: String, open: Binding<Bool>, @ViewBuilder content: () -> Content) {
-        self.init(title: title, open: open, trailing: { EmptyView() }, content: content)
+    init(title: String, count: Int = 0, open: Binding<Bool>, @ViewBuilder content: () -> Content) {
+        self.init(title: title, count: count, open: open, trailing: { EmptyView() }, content: content)
     }
 }
 
@@ -760,10 +963,10 @@ struct SliderRow: View {
     @State private var hovering = false
 
     var body: some View {
-        VStack(spacing: 2) {
+        VStack(spacing: 6) {
             HStack(spacing: 6) {
                 Text(label)
-                    .font(.system(size: 10.5, weight: .regular))
+                    .font(DS.font(10.5, .regular))
                     .foregroundStyle(dimmed ? DS.textQuaternary : (hovering ? DS.textPrimary : DS.textSecondary))
                     .onTapGesture(count: 2) {
                         withAnimation(DS.easeQuick) { value = defaultValue }
@@ -781,7 +984,8 @@ struct SliderRow: View {
                 .accessibilityLabel(label)
                 .accessibilityValue(valueText)
         }
-        .frame(height: 27)
+        .padding(.vertical, 3)
+        .frame(height: 38)
         .contentShape(Rectangle())
         .onHover { hovering = $0 }
         .help(T("双击标签重置", "Double-click the label to reset"))
@@ -915,7 +1119,7 @@ struct InfoGrid: View {
                 .foregroundStyle(DS.textTertiary)
                 .frame(width: 74, alignment: .leading)
             Text(value)
-                .font(.system(size: 9.5, weight: .regular))
+                .font(DS.font(9.5, .regular))
                 .foregroundStyle(DS.textSecondary)
                 .lineLimit(1)
             Spacer(minLength: 0)
