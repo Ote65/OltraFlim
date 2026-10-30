@@ -380,7 +380,7 @@ final class AppModel {
         self.lutLibrary = LUTLibrary(size: catalog.lutSize)
         self.renderer = Renderer(lutLibrary: lutLibrary)
         if renderer == nil {
-            startupError = T("OltraFlim 无法启动 Metal 胶片引擎。", "OltraFlim could not start the Metal film engine.")
+            startupError = T("Oltrafilm 无法启动 Metal 胶片引擎。", "Oltrafilm could not start the Metal film engine.")
         }
         let autoExposureDefault = defaults.object(forKey: "autoExposure") as? Bool ?? true
         autoExposure = autoExposureDefault
@@ -1268,7 +1268,7 @@ final class AppModel {
         panel.canChooseFiles = true
         panel.allowedContentTypes = [.image]
         panel.prompt = T("导入", "Import")
-        panel.message = T("选择要用 OltraFlim 显影的照片。", "Choose photographs to develop with OltraFlim.")
+        panel.message = T("选择要用 Oltrafilm 显影的照片。", "Choose photographs to develop with Oltrafilm.")
         guard panel.runModal() == .OK else { return }
         importURLs(panel.urls)
     }
@@ -2134,7 +2134,7 @@ final class AppModel {
     private func suggestedFileName(for photo: Photo) -> String {
         let base = (photo.name as NSString).deletingPathExtension
         let stock = index.stock(index.stockID(forLook: photo.edit.lookID))
-        let film = stock.map { "\($0.brand)_\($0.name)" } ?? "OltraFlim"
+        let film = stock.map { "\($0.brand)_\($0.name)" } ?? "Oltrafilm"
         let safe = film.replacingOccurrences(of: " ", with: "_").replacingOccurrences(of: "/", with: "-")
         return "\(base)_\(safe).\(exportOptions.format.fileExtension)"
     }

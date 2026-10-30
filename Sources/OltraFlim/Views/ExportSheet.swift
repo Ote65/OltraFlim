@@ -12,7 +12,7 @@ struct ExportSheet: View {
                     Text(T("导出", "Export"))
                         .font(DS.font(18, .medium))
                         .foregroundStyle(DS.textPrimary)
-                    Text(T("基于 \(model.currentImportedLUT?.name ?? model.currentStock?.name ?? "OltraFlim")", "Developed with \(model.currentImportedLUT?.name ?? model.currentStock?.name ?? "OltraFlim")"))
+                    Text(T("基于 \(model.currentImportedLUT?.name ?? model.currentStock?.name ?? "Oltrafilm")", "Developed with \(model.currentImportedLUT?.name ?? model.currentStock?.name ?? "Oltrafilm")"))
                         .font(DS.label(10))
                         .foregroundStyle(DS.textSecondary)
                 }

@@ -6,7 +6,7 @@ struct OltraFlimApp: App {
     @State private var model = AppModel.shared
 
     var body: some Scene {
-        WindowGroup("OltraFlim", id: "main") {
+        WindowGroup("Oltrafilm", id: "main") {
             ContentView()
                 .environment(model)
                 .frame(minWidth: 1180, minHeight: 740)

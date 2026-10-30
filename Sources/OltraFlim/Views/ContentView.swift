@@ -72,7 +72,7 @@ struct ContentView: View {
                 model.exportPresented = false
             }
         }
-        .alert("OltraFlim", isPresented: Binding(
+        .alert("Oltrafilm", isPresented: Binding(
             get: { model.alertMessage != nil },
             set: { if !$0 { model.alertMessage = nil } }
         )) {
