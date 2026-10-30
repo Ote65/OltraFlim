@@ -45,9 +45,8 @@ OpenColorIO. It does not embed Python, Electron or a web view.
 ```
 
 The app is staged at `dist/OltraFlim.app` and ad-hoc signed. macOS 14+ is required.
-
-Packaged copies live at `dist/OltraFlim-1.3.dmg` (drag-to-Applications) and
-`dist/OltraFlim-1.3.zip`.
+A local build produces `dist/OltraFlim-1.3.dmg` / `.zip`; official packages are
+attached to [GitHub Releases](https://github.com/Ote65/OltraFlim/releases).
 
 > This machine only has Command Line Tools (no Xcode) and its install ships two
 > Clang module maps that both define `SwiftBridging`. The build script works around
