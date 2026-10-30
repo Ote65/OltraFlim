@@ -2,6 +2,8 @@
 
 > 版本：**1.3 / build 4**  
 > 更新时间：2026-10-30  
+> 仓库：<https://github.com/Ote65/OltraFlim>  
+> Release：<https://github.com/Ote65/OltraFlim/releases/tag/v1.3>  
 > 平台：macOS 14+  
 > 构建：SwiftUI + AppKit + Metal，无 Xcode，`swiftc` 直接构建  
 > 许可：应用代码 PolyForm Noncommercial 1.0.0；LUT 资产 CC BY-SA 4.0
@@ -144,6 +146,6 @@ beb075ed779e06ec8ae14fee58473181f7f2dea265c439fac2c24ada0f142ff5  OltraFlim-1.3.
 | App | `dist/OltraFlim.app` | ad-hoc signed，macOS 14+ |
 | DMG | `dist/OltraFlim-1.3.dmg` | 拖入 Applications |
 | ZIP | `dist/OltraFlim-1.3.zip` | 直接解压 |
-| GitHub Release | 仓库 Releases 页面 | 1.3 资产（发布后填写链接） |
+| GitHub Release | <https://github.com/Ote65/OltraFlim/releases/tag/v1.3> | 1.3 DMG + ZIP 已上传 |
 
 `dist/` 与 `.build/` 不提交到 Git；发布包走 GitHub Releases。
