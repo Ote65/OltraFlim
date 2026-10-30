@@ -1,5 +1,6 @@
 import Foundation
 import AppKit
+import CoreImage
 import Observation
 import SwiftUI
 import ImageIO
@@ -431,7 +432,12 @@ final class AppModel {
                         size: entry.size,
                         device: renderer.device
                     ) {
-                        library.registerUserLUT(id: entry.id, texture: texture)
+                        library.registerUserLUT(
+                            id: entry.id,
+                            texture: texture,
+                            info: LUTInfo(isACEScc: entry.isACESccLMT,
+                                          exposureEV: Float(entry.exposureEV ?? 0))
+                        )
                     }
                 }
                 DispatchQueue.main.async { [weak self] in
@@ -1136,8 +1142,8 @@ final class AppModel {
             panel.allowedContentTypes = [cube]
         }
         panel.prompt = T("导入", "Import")
-        panel.message = T("选择 .cube 3D LUT。导入后会以 Rec.709 显示 LUT 的方式作用于当前照片。",
-                           "Choose a .cube 3D LUT. It will be applied as a Rec.709 display LUT.")
+        panel.message = T("选择 .cube 3D LUT。文件头声明 ACEScc 的按 ACES LMT 流程处理，其余按 Rec.709 显示 LUT。",
+                           "Choose a .cube 3D LUT. Header metadata decides the domain: ACEScc LMTs run through ACES, everything else is a Rec.709 display LUT.")
         guard panel.runModal() == .OK else { return }
         importLUTURLs(panel.urls)
     }
@@ -1175,7 +1181,12 @@ final class AppModel {
                 guard let self else { return }
                 self.isImportingLUT = false
                 for (entry, texture) in imported {
-                    library.registerUserLUT(id: entry.id, texture: texture)
+                    library.registerUserLUT(
+                        id: entry.id,
+                        texture: texture,
+                        info: LUTInfo(isACEScc: entry.isACESccLMT,
+                                      exposureEV: Float(entry.exposureEV ?? 0))
+                    )
                 }
                 self.importedLUTs = store.entries
                 self.invalidateImportedThumbs()
@@ -1372,6 +1383,8 @@ final class AppModel {
                     guard self.currentPreviewGeneration() == generation,
                           let index = self.photos.firstIndex(where: { $0.id == id }) else { return }
                     self.photos[index].previewImage = loaded.image
+                    self.photos[index].linearImage = loaded.linearImage
+                    self.photos[index].autoExposureEV = loaded.autoExposureEV
                     self.photos[index].pixelSize = loaded.pixelSize
                     self.photos[index].metadata = loaded.metadata
                     self.photos[index].sourceStats = loaded.stats
@@ -1412,6 +1425,7 @@ final class AppModel {
             guard let candidate = previewAccess.first(where: { $0 != selectedPhotoID }),
                   let index = photos.firstIndex(where: { $0.id == candidate }) else { break }
             photos[index].previewImage = nil
+            photos[index].linearImage = nil
             photos[index].previewLoaded = false
             previewAccess.removeAll { $0 == candidate }
             dropLookThumbs(for: candidate)
@@ -1428,7 +1442,8 @@ final class AppModel {
         guard var photo = photos.first(where: { $0.id == photoID }),
               let image = photo.previewImage, let renderer else { return }
         do {
-            try renderer.setImage(image)
+            try renderer.setImage(image: image, linear: photo.linearImage,
+                                  autoExposureEV: photo.autoExposureEV)
         } catch {
             alertMessage = error.localizedDescription
             return
@@ -1803,12 +1818,12 @@ final class AppModel {
 
     // MARK: Thumbnails
 
-    private func thumbnailSource() -> (image: CGImage, key: String, photoID: UUID?)? {
+    private func thumbnailSource() -> (image: CGImage, linear: CIImage?, autoEV: Double, key: String, photoID: UUID?)? {
         if let photo = currentPhoto, let image = photo.previewImage {
-            return (image, "photo:\(photo.id.uuidString)", photo.id)
+            return (image, photo.linearImage, photo.autoExposureEV, "photo:\(photo.id.uuidString)", photo.id)
         }
         if let image = samplePreviewImage {
-            return (image, "sample", nil)
+            return (image, nil, 0, "sample", nil)
         }
         return nil
     }
@@ -1890,7 +1905,9 @@ final class AppModel {
                 finish()
                 return
             }
-            renderer.generateImportedLUTThumbnails(source: source.image, luts: self.importedLUTs) { [weak self] images in
+            renderer.generateImportedLUTThumbnails(source: source.linear ?? CIImage(cgImage: source.image),
+                                                   autoExposureEV: Float(source.autoEV),
+                                                   luts: self.importedLUTs) { [weak self] images in
                 guard let self else { return }
                 if generation == self.thumbGeneration {
                     if let photoID = source.photoID {
@@ -1909,7 +1926,9 @@ final class AppModel {
         }
 
         if needsFilm {
-            renderer.generateLookThumbnails(source: source.image, looks: variants) { [weak self] images in
+            renderer.generateLookThumbnails(source: source.linear ?? CIImage(cgImage: source.image),
+                                            autoExposureEV: Float(source.autoEV),
+                                            looks: variants) { [weak self] images in
                 guard let self else { return }
                 if generation == self.thumbGeneration {
                     if let photoID = source.photoID {
@@ -2011,6 +2030,7 @@ final class AppModel {
                 for index in self.photos.indices {
                     self.photos[index].thumbnail = nil
                     self.photos[index].previewImage = nil
+                    self.photos[index].linearImage = nil
                     self.photos[index].previewLoaded = false
                 }
                 for index in self.folders.indices {
@@ -2075,6 +2095,7 @@ final class AppModel {
         let selected = selectedPhotoID
         for index in photos.indices where photos[index].id != selected {
             photos[index].previewImage = nil
+            photos[index].linearImage = nil
             photos[index].previewLoaded = false
         }
         previewAccess = selected.map { [$0] } ?? []
@@ -2115,11 +2136,9 @@ final class AppModel {
         DispatchQueue.global(qos: .userInitiated).async {
             autoreleasepool {
                 do {
-                    var image = try ImageLoader.shared.loadFull(url: sourceURL)
-                    if let edge = options.longEdge, max(image.width, image.height) > edge {
-                        image = try Self.resize(image, longEdge: CGFloat(edge))
-                    }
-                    guard let rendered = renderer.renderFull(image, edit: edit, look: look) else {
+                    let loaded = try ImageLoader.shared.loadFull(url: sourceURL)
+                    guard let rendered = renderer.renderFull(loaded, edit: edit, look: look,
+                                                            longEdge: options.longEdge) else {
                         throw RendererError.exportFailed
                     }
                     try Self.write(rendered, to: url, format: options.format, quality: options.quality)
@@ -2136,22 +2155,6 @@ final class AppModel {
                 }
             }
         }
-    }
-
-    nonisolated private static func resize(_ image: CGImage, longEdge: CGFloat) throws -> CGImage {
-        let scale = longEdge / CGFloat(max(image.width, image.height))
-        let width = Int(CGFloat(image.width) * scale)
-        let height = Int(CGFloat(image.height) * scale)
-        guard let context = CGContext(
-            data: nil, width: width, height: height,
-            bitsPerComponent: 8, bytesPerRow: width * 4,
-            space: CGColorSpace(name: CGColorSpace.sRGB)!,
-            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-        ) else { throw RendererError.exportFailed }
-        context.interpolationQuality = .high
-        context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
-        guard let result = context.makeImage() else { throw RendererError.exportFailed }
-        return result
     }
 
     nonisolated private static func write(_ image: CGImage, to url: URL, format: ExportFormat, quality: Double) throws {

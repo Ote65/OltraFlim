@@ -6,9 +6,16 @@ import UniformTypeIdentifiers
 
 struct LoadedImage {
     let image: CGImage
+    /// Scene-linear CIImage with highlight headroom. RAW files go through
+    /// CIRAWFilter so values above 1.0 survive; everything else is color
+    /// managed by Core Image into the same linear working space.
+    let linearImage: CIImage?
     let pixelSize: CGSize
     let metadata: PhotoMetadata
     let stats: ImageStats
+    /// Upstream-style baseline exposure: center-weighted mean luma normalised
+    /// to 18% grey. The film LUT expects that scale.
+    let autoExposureEV: Double
     let thumbnail: CGImage?
 }
 
@@ -27,8 +34,12 @@ enum ImageLoaderError: LocalizedError {
 final class ImageLoader {
     static let shared = ImageLoader()
 
+    /// Grey target used by spektrafilm's auto exposure.
+    static let midGray: Double = 0.184
+
     private let context: CIContext
     private let srgb = CGColorSpace(name: CGColorSpace.sRGB)!
+    private let linearSRGB = CGColorSpace(name: CGColorSpace.extendedLinearSRGB)!
 
     private init() {
         context = CIContext(options: [
@@ -40,12 +51,19 @@ final class ImageLoader {
 
     /// Decodes a display-sized preview through ImageIO so a 45 MP original is
     /// never expanded into a full-resolution RGBA buffer just to fill a window.
+    /// RAW files take the CIRAWFilter path so the film engine receives
+    /// scene-linear data instead of Apple's display rendering.
     func loadPreview(url: URL, maxPixel: CGFloat = 2600) throws -> LoadedImage {
         guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
               CGImageSourceGetCount(source) > 0 else {
             throw ImageLoaderError.unreadable(url.lastPathComponent)
         }
         let props = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
+
+        if let raw = rawImage(url: url, maxPixel: maxPixel, props: props) {
+            return raw
+        }
+
         let thumbOptions: [CFString: Any] = [
             kCGImageSourceCreateThumbnailFromImageAlways: true,
             kCGImageSourceCreateThumbnailWithTransform: true,
@@ -59,11 +77,14 @@ final class ImageLoader {
         guard pixelSize.width > 1, pixelSize.height > 1 else {
             throw ImageLoaderError.unreadable(url.lastPathComponent)
         }
+        let linear = CIImage(cgImage: cg)
         return LoadedImage(
             image: cg,
+            linearImage: linear,
             pixelSize: pixelSize,
             metadata: metadata(from: props),
             stats: analyze(cg),
+            autoExposureEV: autoExposureEV(for: linear),
             thumbnail: nil
         )
     }
@@ -92,14 +113,27 @@ final class ImageLoader {
         }
         return LoadedImage(
             image: cg,
+            linearImage: output,
             pixelSize: CGSize(width: extent.width, height: extent.height),
             metadata: metadata(for: url),
             stats: analyze(cg),
+            autoExposureEV: autoExposureEV(for: output),
             thumbnail: nil
         )
     }
 
-    func loadFull(url: URL) throws -> CGImage {
+    func loadFull(url: URL) throws -> LoadedImage {
+        let props: [CFString: Any]?
+        if let source = CGImageSourceCreateWithURL(url as CFURL, nil) {
+            props = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
+        } else {
+            props = nil
+        }
+
+        if let raw = rawImage(url: url, maxPixel: 16000, props: props) {
+            return raw
+        }
+
         let options: [CIImageOption: Any] = [
             .applyOrientationProperty: true,
             .cacheImmediately: true
@@ -123,7 +157,15 @@ final class ImageLoader {
         guard let cg = context.createCGImage(output, from: output.extent, format: .RGBA8, colorSpace: srgb) else {
             throw ImageLoaderError.unreadable(url.lastPathComponent)
         }
-        return cg
+        return LoadedImage(
+            image: cg,
+            linearImage: output,
+            pixelSize: CGSize(width: output.extent.width, height: output.extent.height),
+            metadata: metadata(for: url),
+            stats: analyze(cg),
+            autoExposureEV: autoExposureEV(for: output),
+            thumbnail: nil
+        )
     }
 
     func thumbnail(url: URL, maxPixel: CGFloat = 320) -> CGImage? {
@@ -135,6 +177,90 @@ final class ImageLoader {
             kCGImageSourceShouldCacheImmediately: true
         ]
         return CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary)
+    }
+
+    // MARK: - RAW
+
+    /// Scene-linear RAW decode. `boostAmount` and the local tone curve are
+    /// switched off so Core Image returns a linear response with values above
+    /// 1.0 for highlights, instead of the display rendering ImageIO would give.
+    private func rawImage(url: URL, maxPixel: CGFloat, props: [CFString: Any]?) -> LoadedImage? {
+        guard let filter = CIRAWFilter(imageURL: url) else { return nil }
+        filter.isDraftModeEnabled = false
+        filter.boostAmount = 0
+        filter.boostShadowAmount = 0
+        filter.localToneMapAmount = 0
+        filter.exposure = 0
+        filter.isGamutMappingEnabled = false
+        if filter.isLensCorrectionSupported {
+            filter.isLensCorrectionEnabled = true
+        }
+        let native = filter.nativeSize
+        guard native.width > 1, native.height > 1 else { return nil }
+        let scale = min(1.0, maxPixel / max(native.width, native.height))
+        filter.scaleFactor = Float(scale)
+        if let raw = (props?[kCGImagePropertyOrientation] as? NSNumber)?.uint32Value,
+           let orientation = CGImagePropertyOrientation(rawValue: raw) {
+            filter.orientation = orientation
+        }
+        guard let linear = filter.outputImage else { return nil }
+        let extent = linear.extent.integral
+        guard extent.width > 1, extent.height > 1 else { return nil }
+        guard let display = context.createCGImage(linear, from: extent, format: .RGBA8, colorSpace: srgb) else {
+            return nil
+        }
+        return LoadedImage(
+            image: display,
+            linearImage: linear,
+            pixelSize: CGSize(width: extent.width, height: extent.height),
+            metadata: metadata(from: props),
+            stats: analyze(display),
+            autoExposureEV: autoExposureEV(for: linear),
+            thumbnail: nil
+        )
+    }
+
+    // MARK: - Auto exposure
+
+    /// Center-weighted mean luminance buffered to 18% grey, mirroring
+    /// spektrafilm's `measure_autoexposure_ev(method: .center_weighted)`.
+    private func autoExposureEV(for image: CIImage) -> Double {
+        let width = 128, height = 128
+        let maxSide = max(image.extent.width, image.extent.height)
+        guard maxSide > 1 else { return 0 }
+        let scale = maxSide / CGFloat(max(width, height))
+        let small = image.transformed(by: CGAffineTransform(scaleX: 1 / scale, y: 1 / scale))
+        var buffer = [Float](repeating: 0, count: width * height * 4)
+        buffer.withUnsafeMutableBytes { raw in
+            guard let base = raw.baseAddress else { return }
+            context.render(
+                small, toBitmap: base, rowBytes: width * 4 * 4,
+                bounds: CGRect(x: 0, y: 0, width: width, height: height),
+                format: .RGBAf, colorSpace: linearSRGB
+            )
+        }
+        // Upstream normalises so the long edge spans [-0.5, 0.5]; sigma is 0.2.
+        let longSide = Double(max(width, height))
+        let sx = Double(width) / longSide
+        let sy = Double(height) / longSide
+        var weighted = 0.0
+        var total = 0.0
+        for y in 0..<height {
+            let ny = (Double(y) / Double(height) - 0.5) * sy
+            for x in 0..<width {
+                let nx = (Double(x) / Double(width) - 0.5) * sx
+                let weight = exp(-(nx * nx + ny * ny) / (2 * 0.2 * 0.2))
+                let index = (y * width + x) * 4
+                let luma = 0.2126 * Double(buffer[index])
+                    + 0.7152 * Double(buffer[index + 1])
+                    + 0.0722 * Double(buffer[index + 2])
+                weighted += max(luma, 0) * weight
+                total += weight
+            }
+        }
+        guard total > 0, weighted > 1e-9 else { return 0 }
+        let mean = weighted / total
+        return (-log2(mean / Self.midGray)).clamped(to: -4...4)
     }
 
     // MARK: - Metadata

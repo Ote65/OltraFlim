@@ -1,5 +1,6 @@
 import Foundation
 import CoreGraphics
+import CoreImage
 
 struct Adjustments: Codable, Equatable {
     var exposure: Double = 0          // -5…+5 EV
@@ -225,6 +226,9 @@ struct Photo: Identifiable {
     var edit: PhotoEdit
     var thumbnail: CGImage?
     var previewImage: CGImage? = nil
+    /// Scene-linear source used by the film engine. Not persisted.
+    var linearImage: CIImage? = nil
+    var autoExposureEV: Double = 0
     var previewLoaded = false
     var previewError: String?
     var sourceStats: ImageStats = .empty

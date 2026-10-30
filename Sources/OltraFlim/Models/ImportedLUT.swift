@@ -8,8 +8,19 @@ struct ImportedLUT: Identifiable, Codable, Hashable {
     var originalFileName: String
     var createdAt: Date
     var swatch: [String]
+    /// Input space declared by the LUT header, e.g. "ACEScc".
+    var inputSpace: String? = nil
+    /// Exposure the LUT expects at its input, in stops.
+    var exposureEV: Double? = nil
+
+    var isACESccLMT: Bool {
+        inputSpace?.lowercased() == "acescc"
+    }
 
     var subtitle: String {
-        "\(size)³ · \(T("自定义 LUT", "Custom LUT"))"
+        if isACESccLMT {
+            return "\(size)³ · ACEScc LMT"
+        }
+        return "\(size)³ · \(T("自定义 LUT", "Custom LUT"))"
     }
 }

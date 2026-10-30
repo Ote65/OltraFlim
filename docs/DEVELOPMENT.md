@@ -124,11 +124,17 @@ needed.
 
 Renderer invariants:
 
-- `Uniforms` field order must equal `RenderUniforms`.
+- `Uniforms` field order must equal `RenderUniforms` (the last fields are
+  `lutDomain` and `lutExposureEV`).
 - Preview and export must use the same `processImage` parameters.
-- `renderFull` builds its own curve texture.
+- Source and processed textures are `rgba16Float`; the shader expects
+  **scene-linear Rec.709** and never decodes sRGB.
+- `CIRAWFilter` runs with `boostAmount/boostShadowAmount/localToneMapAmount = 0`
+  so RAW stays linear with highlight headroom above 1.0.
+- `renderFull` takes a `LoadedImage` and builds its own curve texture.
 - `grainSeed` remains a small float (`abs(hash)%4096/100`).
-- Imported LUT cap: 50 entries, max 65³.
+- Imported LUT cap: 50 entries, max 65³. ACEScc LMTs (`input_space` header)
+  are sampled in ACEScc and sent through `neutral-0`; other LUTs stay Rec.709.
 
 ## 7. Test launch arguments
 

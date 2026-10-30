@@ -118,7 +118,34 @@ Portra 400 LUT 上逐参数渲染两端并统计平均 / 99 分位 / 最大像�
 - **绿色饱和 ±100**：0.96 → 2.37。
 - 其余颜色、细节、通透参数维持 1.2 的响应水平。
 
-### 3.5 数据与缓存（1.4 增量，仅编译验证）
+### 3.5 色彩管线修订（未发布，headless 验证）
+
+对照 spektrafilm 上游与 Alcedo 的 LUT 导出格式，修正了 RAW 输入与 LUT 域：
+
+- RAW 改用 `CIRAWFilter` 场景线性解码（`boostAmount/boostShadowAmount/
+  localToneMapAmount = 0`），预览与导出纹理改为 `rgba16Float`，线性值可
+  超过 1.0。旧路径把 RAW 先经 ImageIO 显示渲染成 8-bit sRGB，ACEScc 坐标
+  最高只到 0.555，LUT 的高光肩部整段没用上。
+- 补上游式自动曝光：128² 线性图 + 中心加权（σ=0.2）均值 → 0.184，
+  结果走 `exposureBias`（原先是死字段）。
+- 导入 `.cube` 解析 `# ALCEDO_LUT` 头：ACEScc LMT 走 ACEScc → LMT →
+  `neutral-0`（ACES 2.0 SDR 显示变换）路径；其余仍按 Rec.709 显示 LUT。
+  负值不再截断，`DOMAIN_MIN/MAX` 改为逐通道归一化。
+- ACEScc 公式改为 S-2014-003（2⁻¹⁶ 阈值 + 0.5 系数），同步修改
+  `Tools/build_luts.py`。
+- 无头 RenderCheck 证据（Sony DSC03406.ARW，4240×2832，全部调整=0）：
+
+```text
+spc-kodak-portra-400-…-aces2-sdr   p05 0.047  p50 0.361  p95 0.904  max 0.977
+spk-kodak-portra-400-…-endura      p05 0.043  p50 0.649  p95 0.939  max 0.983
+导入同一 65³ ACEScc LMT（+1.5EV）  p05 0.038  p50 0.664  p95 0.946  max 0.985
+DSC03406.JPG + spc 同一 look       p05 0.136  p50 0.576  p95 0.830  max 0.909
+```
+
+内置 33³ 包与直接导入 65³ 源 LMT 的结果在灰阶上差 <2%，确认烘焙与运行时
+ACEScc 路径一致。**以上均为无头渲染，未启动 App、未做 UI 对比。**
+
+### 3.6 数据与缓存（1.4 增量，仅编译验证）
 
 - 原图仍只按路径索引：`importURLs` / `importFolders` 不复制、不移动用户文件。
 - 缩略图写入 `~/Library/Caches/studio.oltra.oltraflim/thumbnails-v1`，
@@ -149,6 +176,10 @@ Portra 400 LUT 上逐参数渲染两端并统计平均 / 99 分位 / 最大像�
 8. Compare 分割杆与图像矩形对齐。
 9. 设置面板“清理缓存”后缩略图是否自动重新出现、缓存大小是否归零。
 10. 连续打开多张 45 MP 照片时内存是否稳定（活动监视器观察）。
+11. RAW 打开后的明暗是否与 Alcedo 同一 LUT 接近；高光是否能到白（对比
+    1.4 旧版 p95≈0.84 的灰白）。
+12. 导入 Alcedo 的 `.cube`：卡片副标题应显示 `ACEScc LMT`，画面不应再偏暗；
+    导入普通 Rec.709 LUT 的行为不变。
 
 ### 4.2 设计边界
 
@@ -162,7 +193,13 @@ Portra 400 LUT 上逐参数渲染两端并统计平均 / 99 分位 / 最大像�
 - 顶级文件夹移除只删索引，不删磁盘文件。
 - `folderTrail` 是会话状态，不跨启动恢复；启动总是回到照片库根。
 - 导入自定义 LUT 上限 50 个、最大 65³；内置 33³。
-- 预览显示级 LUT 与导出一致；色彩管理按 sRGB/Rec.709 假设。
+- 预览显示级 LUT 与导出一致；色彩管理按线性 Rec.709 工作空间。
+- RAW 解码走 Apple 的 `CIRAWFilter`（等价于 LibRaw 的系统路径），去马赛克、
+  降噪和镜头校正由系统决定，无法选择 RCD / 神经去马赛克。
+- 默认启用自动曝光基线：RAW/JPEG 的线性亮度中心加权均值归一到 18% 灰，
+  因此同一张照片在 1.4 之前的存档编辑可能整体变亮或变暗，需要重新微调。
+- 内置包仍是 ACEScc 输入域的 33³；运行时用 `neutral-0` 作为 ACES 2.0
+  SDR 显示变换的 33³ 近似，不是逐像素的解析式 DRT。
 - 无签名公证，只有 ad-hoc 签名；Gatekeeper 可能要求右键打开。
 - 本机无 Xcode；SwiftPM manifest 因 CLT SDK 问题不可用，使用
   `script/build_and_run.sh` / `swiftc`。

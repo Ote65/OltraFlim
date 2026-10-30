@@ -4,9 +4,13 @@ using namespace metal;
 // -----------------------------------------------------------------------------
 // OltraFlim film renderer
 //
-// Pipeline: sRGB photo -> scene-linear Rec.709 -> darkroom adjustments ->
+// Pipeline: scene-linear Rec.709 source (RAW decoded with headroom, or an
+// sRGB photo converted to linear by Core Image) -> darkroom adjustments ->
 // ACEScc -> 33^3 film LMT (already baked through the ACES 2.0 SDR Rec.709
 // output transform) -> encoded Rec.709, with halation, grain and vignette.
+//
+// Imported ACEScc LMTs skip the ACES 2.0 bake and sample the neutral pack
+// entry as the display transform instead (see processImage).
 // -----------------------------------------------------------------------------
 
 struct Uniforms {
@@ -71,6 +75,8 @@ struct Uniforms {
     float vignetteFeather;
     float vignetteCenterX;
     float vignetteCenterY;
+    float lutDomain;      // 0 = display-referred Rec.709 LUT, 1 = ACEScc LMT
+    float lutExposureEV;  // LMT input exposure bake, in stops
 };
 
 struct DisplayUniforms {
@@ -115,11 +121,13 @@ inline float3 linear_to_srgb3(float3 c) {
     return float3(linear_to_srgb(c.r), linear_to_srgb(c.g), linear_to_srgb(c.b));
 }
 
+// ACEScc as published in S-2014-003: the linear toe is 2^-16 and the
+// second branch adds half the value, not the value itself.
 inline float acescc_channel(float x) {
     if (x <= 0.0f) {
         return (log2(1.0f / 65536.0f) + 9.72f) / 17.52f;
-    } else if (x < 0.000061f) {
-        return (log2(0.000061f + x) + 9.72f) / 17.52f;
+    } else if (x < 1.0f / 65536.0f) {
+        return (log2(1.0f / 65536.0f + 0.5f * x) + 9.72f) / 17.52f;
     }
     return (log2(x) + 9.72f) / 17.52f;
 }
@@ -202,7 +210,8 @@ kernel void bloomExtract(texture2d<float, access::sample> src [[texture(0)]],
     if (gid.x >= dst.get_width() || gid.y >= dst.get_height()) return;
     constexpr sampler s(filter::linear, address::clamp_to_edge);
     float2 uv = (float2(gid) + 0.5f) / float2(dst.get_width(), dst.get_height());
-    float3 c = srgb_to_linear3(src.sample(s, uv).rgb);
+    // The source texture already holds scene-linear Rec.709 values.
+    float3 c = max(src.sample(s, uv).rgb, 0.0f);
     float luma = dot(c, LUMA);
     float threshold = 0.35f + (u.halationThreshold / 100.0f) * 0.55f;
     float over = max(luma - threshold, 0.0f);
@@ -279,12 +288,14 @@ kernel void processImage(texture2d<float, access::sample> src [[texture(0)]],
     float3 source = src.sample(s, uv).rgb;
 
     if (u.showOriginal > 0.5f) {
-        dst.write(float4(source, 1.0f), outPos);
+        // The source is scene-linear now, so the untouched original has to be
+        // encoded for the display.
+        dst.write(float4(linear_to_srgb3(source), 1.0f), outPos);
         return;
     }
 
-    float3 linear = srgb_to_linear3(source);
-    linear = max(linear, 0.0f);
+    // Scene-linear Rec.709, possibly above 1.0 for RAW highlights.
+    float3 linear = max(source, 0.0f);
 
     // ---- White balance -----------------------------------------------------
     float t = u.temperature / 100.0f;
@@ -297,7 +308,10 @@ kernel void processImage(texture2d<float, access::sample> src [[texture(0)]],
     linear *= wb;
 
     // ---- Exposure ----------------------------------------------------------
-    linear *= exp2(u.exposure);
+    // exposureBias carries the upstream-style center-weighted auto exposure:
+    // the scene is normalised so its weighted mean lands on 18% grey before
+    // the film LUT sees it.
+    linear *= exp2(u.exposure + u.exposureBias);
 
     // ---- Tone shaping, luminance preserving --------------------------------
     float luma = dot(linear, LUMA);
@@ -317,7 +331,8 @@ kernel void processImage(texture2d<float, access::sample> src [[texture(0)]],
 
     float scale = exp2(toneLog - logL);
     linear *= scale;
-    linear = clamp(linear, 0.0f, 64.0f);
+    // ACEScc 1.0 is linear 222, so keep the full scene range representable.
+    linear = clamp(linear, 0.0f, 256.0f);
 
     // ---- Saturation / vibrance ---------------------------------------------
     float toneLuma = dot(linear, LUMA);
@@ -339,8 +354,8 @@ kernel void processImage(texture2d<float, access::sample> src [[texture(0)]],
         float2 dirs[4] = {float2(1, 0), float2(0.7071f, 0.7071f), float2(0, 1), float2(-0.7071f, 0.7071f)};
         for (int i = 0; i < 4; i++) {
             float2 o = dirs[i] * texel * clarityRadius;
-            blur += srgb_to_linear3(src.sample(s, uv + o).rgb);
-            blur += srgb_to_linear3(src.sample(s, uv - o).rgb);
+            blur += max(src.sample(s, uv + o).rgb, 0.0f);
+            blur += max(src.sample(s, uv - o).rgb, 0.0f);
         }
         blur *= 0.125f;
         float detail = toneLuma - dot(blur, LUMA);
@@ -348,10 +363,10 @@ kernel void processImage(texture2d<float, access::sample> src [[texture(0)]],
     }
     if (u.sharpen > 0.001f) {
         float3 blur = float3(0.0f);
-        blur += srgb_to_linear3(src.sample(s, uv + float2(texel.x, 0)).rgb);
-        blur += srgb_to_linear3(src.sample(s, uv - float2(texel.x, 0)).rgb);
-        blur += srgb_to_linear3(src.sample(s, uv + float2(0, texel.y)).rgb);
-        blur += srgb_to_linear3(src.sample(s, uv - float2(0, texel.y)).rgb);
+        blur += max(src.sample(s, uv + float2(texel.x, 0)).rgb, 0.0f);
+        blur += max(src.sample(s, uv - float2(texel.x, 0)).rgb, 0.0f);
+        blur += max(src.sample(s, uv + float2(0, texel.y)).rgb, 0.0f);
+        blur += max(src.sample(s, uv - float2(0, texel.y)).rgb, 0.0f);
         blur *= 0.25f;
         float detail = toneLuma - dot(blur, LUMA);
         linear += detail * (u.sharpen / 100.0f) * 1.6f;
@@ -368,20 +383,32 @@ kernel void processImage(texture2d<float, access::sample> src [[texture(0)]],
         linear += float3(glow.a) * (u.bloom / 100.0f) * 0.42f;
     }
 
-    // ---- Film LUT or imported display LUT --------------------------------
+    // ---- Film LUT or imported LUT ----------------------------------------
+    float3 ap1 = float3(dot(linear, R709_TO_AP1_ROW0),
+                        dot(linear, R709_TO_AP1_ROW1),
+                        dot(linear, R709_TO_AP1_ROW2));
+    float3 ccInput = clamp(acescc_encode(ap1) + u.lutExposureEV / 17.52f, 0.0f, 1.0f);
+
     float3 enc;
     if (u.useDisplayLUT > 0.5f) {
-        // Imported creative LUTs are display-referred (Rec.709 → Rec.709).
-        float3 base = clamp(linear_to_srgb3(linear), 0.0f, 1.0f);
-        float3 lutted = clamp(userLUT.sample(lutSampler, base).rgb, 0.0f, 1.0f);
-        enc = mix(base, lutted, clamp(u.displayLUTStrength, 0.0f, 1.0f));
+        if (u.lutDomain > 0.5f) {
+            // ACEScc (AP1) -> ACEScc (AP1) LMT, the Alcedo export format.
+            // `neutral` doubles as the ACES 2.0 SDR output transform: it is
+            // the same ACEScc grid pushed through the display transform, so
+            // sampling it after the LMT lands the film on screen.
+            float3 ccOut = clamp(userLUT.sample(lutSampler, ccInput).rgb, 0.0f, 1.0f);
+            float3 baseEnc = clamp(neutral.sample(lutSampler, ccInput).rgb, 0.0f, 1.0f);
+            float3 filmEnc = clamp(neutral.sample(lutSampler, ccOut).rgb, 0.0f, 1.0f);
+            enc = mix(baseEnc, filmEnc, clamp(u.displayLUTStrength, 0.0f, 1.0f));
+        } else {
+            // Display-referred Rec.709 -> Rec.709 creative LUT.
+            float3 base = clamp(linear_to_srgb3(linear), 0.0f, 1.0f);
+            float3 lutted = clamp(userLUT.sample(lutSampler, base).rgb, 0.0f, 1.0f);
+            enc = mix(base, lutted, clamp(u.displayLUTStrength, 0.0f, 1.0f));
+        }
     } else {
-        float3 ap1 = float3(dot(linear, R709_TO_AP1_ROW0),
-                            dot(linear, R709_TO_AP1_ROW1),
-                            dot(linear, R709_TO_AP1_ROW2));
-        float3 cc = clamp(acescc_encode(ap1), 0.0f, 1.0f);
-        float3 neutralEnc = neutral.sample(lutSampler, cc).rgb;
-        float3 filmEnc = film.sample(lutSampler, cc).rgb;
+        float3 neutralEnc = neutral.sample(lutSampler, ccInput).rgb;
+        float3 filmEnc = film.sample(lutSampler, ccInput).rgb;
         enc = u.useFilm > 0.5f ? mix(neutralEnc, filmEnc, clamp(u.strength, 0.0f, 1.0f))
                                   : neutralEnc;
     }
@@ -630,10 +657,12 @@ fragment float4 displayFragment(DisplayOut in [[stage_in]],
     }
 
     // Compare slider: original on the left of the split, developed on the right.
+    // The original texture is scene-linear, the developed one is display
+    // encoded, so only the original needs the encode.
     float3 developed = img.sample(s, uv).rgb;
     float3 color = developed;
     if (d.compareEnabled > 0.5f && uv.x < d.splitX) {
-        color = original.sample(s, uv).rgb;
+        color = linear_to_srgb3(original.sample(s, uv).rgb);
     }
     float edge = min(min(uv.x, 1.0f - uv.x), min(uv.y, 1.0f - uv.y));
     float edgePx = max(1.0f, d.backingScale) * 0.5f * scale / max(d.viewWidth, d.viewHeight);

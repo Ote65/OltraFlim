@@ -104,9 +104,9 @@ HomeLibraryView photo card
 | --- | --- | --- |
 | `Renderer.swift` | Metal 设备/队列、运行时编译 shader、纹理、uniform、预览、导出、直方图、缩略图批量渲染、`CanvasState` 缩放/平移动画 | `draw(in:)`, `renderFull`, `encodeProcess`, `CanvasState` |
 | `Shaders.metal` | 全部影像算法：白平衡、曝光、高光/阴影/白/黑、饱和、局部对比、光晕、LUT、曲线、色彩分级、通透、褪色、暗角、颗粒、抖动 | `processImage`, `bloomExtract`, `histogram`, `displayVertex/Fragment` |
-| `ImageLoader.swift` | ImageIO 解码、EXIF、缩略图、预览、全分辨率、统计信息 | `loadPreview`, `loadFull`, `thumbnail` |
-| `LUTLibrary.swift` | 加载内置/中性 LUT；用户 LUT 注册、查询、删除；资源定位 | `load(device:catalog:)`, `film`, `neutral0`, `userLUT` |
-| `LUTImporter.swift` | 解析 3D `.cube`、RGBA16F 落盘、创建 Metal 3D texture、identity swatch | `parse`, `writeBinary`, `makeTexture` |
+| `ImageLoader.swift` | RAW 走 `CIRAWFilter` 场景线性解码（`boostAmount=0`，可超白），其余走 ImageIO/Core Image 并统一转线性；EXIF、缩略图、自动曝光基线、统计信息 | `loadPreview`, `loadFull`, `thumbnail`, `autoExposureEV` |
+| `LUTLibrary.swift` | 加载内置/中性 LUT；用户 LUT 注册（含 `LUTInfo` 域信息）、查询、删除；资源定位 | `load(device:catalog:)`, `film`, `neutral0`, `userLUT`, `userLUTInfo` |
+| `LUTImporter.swift` | 解析 3D `.cube`（含 `# ALCEDO_LUT` 头：input_space / exposure）、保留负值、逐通道 DOMAIN、RGBA16F 落盘、3D texture、swatch | `parse`, `writeBinary`, `makeTexture` |
 | `CurveTexture.swift` | 将 `CurveSet` 采样成 256×1 RGBA16F 曲线纹理；R/G/B 为通道，A 为明暗 | `CurveTextureBuilder.make` |
 
 ### 4.3 Models
@@ -244,14 +244,15 @@ CanvasMTKView.draw
 
 ### 6.2 `processImage` 顺序（`Shaders.metal`）
 
-1. sRGB → linear
+1. 场景线性 Rec.709 源（RAW 经 `CIRAWFilter`，高光可 > 1.0）
 2. 白平衡（temperature/tint）
-3. 曝光
+3. 曝光 + 自动曝光基线（`exposureBias`，中心加权均值 → 18% 灰）
 4. 对数域 tone shaping（对比、阴影、黑色、中间调，pivot 18% 灰）
 5. 饱和 + 自然饱和
 6. Clarity / Sharpen（采样原图的高频）
 7. Halation / Bloom（同一高光提取，halation 用 RGB，bloom 用 alpha）
-8. Film LUT：ACEScc → AP1 → neutral/film LUT mix；或导入 LUT（Rec.709）
+8. LUT：ACEScc → neutral/film LUT mix；导入 LUT 按头部元数据分流
+   （ACEScc LMT 走 ACEScc → LMT → neutral 显示变换；其余按 Rec.709 显示 LUT）
 9. 白点（`whites`）+ 显示空间高光恢复 + 高光过渡
 10. 用户曲线（R/G/B + 明暗 A）
 11. 色彩分级（HSV、肤色/绿色/蓝色、色相、密度、分离色调）
@@ -264,9 +265,11 @@ CanvasMTKView.draw
 
 ### 6.3 导出路径
 
-`Renderer.renderFull(_:edit:look:)`：
+`Renderer.renderFull(_:edit:look:longEdge:)`：
 
-- 直接创建全分辨率 source/destination/bloom 纹理。
+- 接收 `LoadedImage`，用 `linearImage` 建立全分辨率 `rgba16Float` 源纹理；
+  `longEdge` 在 CIImage 阶段缩放，避免丢失线性/超白数据。
+- 直接创建全分辨率 destination/bloom 纹理。
 - **单独构建 `exportCurveTexture`**；不要复用预览的共享 `curveTexture`。
 - `previewScale = 1`，颗粒尺寸按全分辨率计算。
 - 导出通过 `CGImageDestination` 写 JPEG/PNG/TIFF/HEIC（`ExportSheet`）。

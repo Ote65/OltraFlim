@@ -63,13 +63,14 @@ DISPLAY_PROCESSOR = CONFIG.getProcessor(
 
 
 def acescc_encode(x: np.ndarray) -> np.ndarray:
+    """ACEScc per S-2014-003: 2^-16 toe, with a 0.5 factor in the toe."""
     x = np.asarray(x, dtype=np.float64)
     return np.where(
         x <= 0,
         (math.log2(1.0 / 65536.0) + 9.72) / 17.52,
         np.where(
-            x < 0.000061,
-            (np.log2(0.000061 + x) + 9.72) / 17.52,
+            x < 1.0 / 65536.0,
+            (np.log2(1.0 / 65536.0 + 0.5 * x) + 9.72) / 17.52,
             (np.log2(np.maximum(x, 1e-10)) + 9.72) / 17.52,
         ),
     )
@@ -81,8 +82,8 @@ def acescc_decode(y: np.ndarray) -> np.ndarray:
         y <= 0,
         0.0,
         np.where(
-            y < (math.log2(0.000061) + 9.72) / 17.52,
-            2.0 ** (y * 17.52 - 9.72) - 0.000061,
+            y < (math.log2(1.0 / 65536.0) + 9.72) / 17.52,
+            2.0 ** (y * 17.52 - 9.72) - 1.0 / 65536.0,
             2.0 ** (y * 17.52 - 9.72),
         ),
     )

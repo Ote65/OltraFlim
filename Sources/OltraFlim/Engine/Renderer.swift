@@ -89,8 +89,12 @@ struct RenderUniforms {
     var vignetteFeather: Float = 50
     var vignetteCenterX: Float = 0
     var vignetteCenterY: Float = 0
+    var lutDomain: Float = 0
+    var lutExposureEV: Float = 0
 
-    init(edit: PhotoEdit, look: FilmVariant?, size: CGSize, previewScale: CGFloat, showOriginal: Bool) {
+    init(edit: PhotoEdit, look: FilmVariant?, size: CGSize, previewScale: CGFloat,
+         showOriginal: Bool, autoExposureEV: Float = 0,
+         lutDomain: Float = 0, lutExposureEV: Float = 0) {
         let a = edit.adjustments
         exposure = Float(a.exposure)
         contrast = Float(a.contrast)
@@ -117,7 +121,11 @@ struct RenderUniforms {
         imageWidth = Float(size.width)
         imageHeight = Float(size.height)
         self.previewScale = Float(max(1, previewScale))
-        exposureBias = Float(look?.exposureEV ?? 0)
+        // Film-pack exposure is baked into the LUT itself, so this slot is
+        // free for the upstream-style auto exposure baseline.
+        exposureBias = autoExposureEV
+        self.lutDomain = lutDomain
+        self.lutExposureEV = lutExposureEV
         displayLUTStrength = Float(edit.lutStrength)
         tonalTransparency = Float(a.tonalTransparency / 100)
         colorTransparency = Float(a.colorTransparency / 100)
@@ -353,6 +361,9 @@ final class Renderer {
     private var userLUTTexture: MTLTexture?
     private var curveTexture: MTLTexture?
     private let identityCurveTexture: MTLTexture
+    private let ciContext: CIContext
+    private var autoExposureEV: Float = 0
+    private var currentLUTInfo: LUTInfo?
 
     var toneStats = ToneStats.empty
 
@@ -411,6 +422,11 @@ final class Renderer {
         }
         self.identityCurveTexture = identityCurve
         self.histogramBuffer = histogramBuffer
+        self.ciContext = CIContext(options: [
+            .workingColorSpace: CGColorSpace(name: CGColorSpace.extendedLinearSRGB)!,
+            .outputColorSpace: CGColorSpace(name: CGColorSpace.extendedLinearSRGB)!,
+            .cacheIntermediates: false
+        ])
         self.blackTexture = Renderer.makeBlackTexture(device: device)
         canvas.onUpdate = { [weak self] in self?.redraw() }
     }
@@ -446,18 +462,20 @@ final class Renderer {
 
     // MARK: - Source
 
-    func setImage(_ image: CGImage) throws {
+    func setImage(image: CGImage, linear: CIImage?, autoExposureEV: Double = 0) throws {
         stateLock.lock()
         defer { stateLock.unlock() }
-        let texture = try makeTexture(from: image)
-        replaceSource(with: texture, size: CGSize(width: image.width, height: image.height))
+        let source = linear ?? CIImage(cgImage: image)
+        let texture = try makeLinearTexture(from: source)
+        self.autoExposureEV = Float(autoExposureEV)
+        replaceSource(with: texture, size: CGSize(width: texture.width, height: texture.height))
     }
 
     private func replaceSource(with texture: MTLTexture, size: CGSize) {
         sourceTexture = texture
         canvas.setImage(size)
         let descriptor = MTLTextureDescriptor.texture2DDescriptor(
-            pixelFormat: .rgba8Unorm, width: texture.width, height: texture.height, mipmapped: false
+            pixelFormat: .rgba16Float, width: texture.width, height: texture.height, mipmapped: false
         )
         descriptor.usage = [.shaderRead, .shaderWrite]
         descriptor.storageMode = .shared
@@ -475,37 +493,42 @@ final class Renderer {
         canvasView?.setNeedsDisplay(canvasView?.bounds ?? .zero)
     }
 
-    private func makeTexture(from image: CGImage) throws -> MTLTexture {
-        let width = image.width
-        let height = image.height
+    /// Renders a scene-linear CIImage straight into a half-float texture.
+    /// Core Image does the color management (camera space -> linear Rec.709)
+    /// and values above 1.0 survive, which is what the film LUT's ACEScc
+    /// domain needs for highlight headroom.
+    private func makeLinearTexture(from image: CIImage) throws -> MTLTexture {
+        let extent = image.extent.integral
+        let width = Int(extent.width)
+        let height = Int(extent.height)
         guard width > 1, height > 1 else { throw RendererError.textureAllocation }
-        var bytes = [UInt8](repeating: 0, count: width * height * 4)
-        guard let context = CGContext(
-            data: &bytes,
-            width: width,
-            height: height,
-            bitsPerComponent: 8,
-            bytesPerRow: width * 4,
-            space: CGColorSpace(name: CGColorSpace.sRGB)!,
-            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
-        ) else { throw RendererError.textureAllocation }
-        context.interpolationQuality = .high
-        context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
         let descriptor = MTLTextureDescriptor.texture2DDescriptor(
-            pixelFormat: .rgba8Unorm, width: width, height: height, mipmapped: false
+            pixelFormat: .rgba16Float, width: width, height: height, mipmapped: false
         )
         descriptor.usage = [.shaderRead]
         descriptor.storageMode = .shared
         guard let texture = device.makeTexture(descriptor: descriptor) else {
             throw RendererError.textureAllocation
         }
-        bytes.withUnsafeBytes { raw in
+        // Render into a half-float bitmap, then upload. Core Image's direct
+        // MTLTexture render path returns an empty texture on this machine,
+        // so the bitmap hop is the reliable route.
+        var pixels = [UInt16](repeating: 0, count: width * height * 4)
+        let space = CGColorSpace(name: CGColorSpace.extendedLinearSRGB)!
+        pixels.withUnsafeMutableBytes { raw in
+            guard let base = raw.baseAddress else { return }
+            ciContext.render(
+                image, toBitmap: base, rowBytes: width * 8,
+                bounds: extent, format: .RGBAh, colorSpace: space
+            )
+        }
+        pixels.withUnsafeBytes { raw in
             guard let base = raw.baseAddress else { return }
             texture.replace(
                 region: MTLRegionMake2D(0, 0, width, height),
                 mipmapLevel: 0,
                 withBytes: base,
-                bytesPerRow: width * 4
+                bytesPerRow: width * 8
             )
         }
         return texture
@@ -532,6 +555,7 @@ final class Renderer {
         currentLook = look
         curveTexture = builtCurves ?? identityCurveTexture
         userLUTTexture = lutLibrary.userLUT(edit.lutID)
+        currentLUTInfo = edit.lutID.flatMap { lutLibrary.userLUTInfo($0) }
         if let look, let texture = lutLibrary.film[look.id] {
             filmTexture = texture
             neutralTexture = look.exposureEV >= 0.75 ? lutLibrary.neutral15 : lutLibrary.neutral0
@@ -588,6 +612,8 @@ final class Renderer {
         let look = currentLook
         let compare = compareEnabled
         let split = compareSplit
+        let autoEV = autoExposureEV
+        let lutInfo = currentLUTInfo
         let shouldProcess = needsProcess
         needsProcess = false
         let wantsHistogram = histogramRequested
@@ -603,9 +629,14 @@ final class Renderer {
                 edit: edit, look: look,
                 size: CGSize(width: source.width, height: source.height),
                 previewScale: 1,
-                showOriginal: lutLibrary.neutral0 == nil
+                showOriginal: lutLibrary.neutral0 == nil,
+                autoExposureEV: autoEV
             )
             uniforms.useDisplayLUT = (edit.lutID != nil && userLUT != nil) ? 1 : 0
+            if uniforms.useDisplayLUT > 0, let lutInfo {
+                uniforms.lutDomain = lutInfo.isACEScc ? 1 : 0
+                uniforms.lutExposureEV = lutInfo.exposureEV
+            }
             uniforms.useFilm = uniforms.useDisplayLUT > 0 ? 0 : (look == nil ? 0 : 1)
             uniforms.displayLUTStrength = Float(edit.lutStrength)
             uniforms.tonalTransparency = Float(edit.adjustments.tonalTransparency / 100)
@@ -863,7 +894,8 @@ final class Renderer {
     /// Renders every look against the current photo into one atlas, then slices
     /// it into small CGImages for the film browser. The whole batch stays on
     /// the GPU and is read back exactly once.
-    func generateLookThumbnails(source: CGImage, looks: [FilmVariant],
+    func generateLookThumbnails(source: CIImage, autoExposureEV: Float = 0,
+                                looks: [FilmVariant],
                                 completion: @escaping ([String: CGImage]) -> Void) {
         thumbnailQueue.async { [weak self] in
             guard let self else { return }
@@ -886,7 +918,8 @@ final class Renderer {
                                               look: look,
                                               size: CGSize(width: cellW, height: cellH),
                                               previewScale: 1,
-                                              showOriginal: false)
+                                              showOriginal: false,
+                                              autoExposureEV: autoExposureEV)
                 uniforms.destOffsetX = Float(col * cellW)
                 uniforms.destOffsetY = Float(row * cellH)
                 uniforms.ditherSeed = Float(index) * 3.17
@@ -931,7 +964,8 @@ final class Renderer {
         }
     }
 
-    func generateImportedLUTThumbnails(source: CGImage, luts: [ImportedLUT],
+    func generateImportedLUTThumbnails(source: CIImage, autoExposureEV: Float = 0,
+                                      luts: [ImportedLUT],
                                       completion: @escaping ([String: CGImage]) -> Void) {
         thumbnailQueue.async { [weak self] in
             guard let self, !luts.isEmpty else {
@@ -961,7 +995,8 @@ final class Renderer {
                     look: nil,
                     size: CGSize(width: cellW, height: cellH),
                     previewScale: 1,
-                    showOriginal: false
+                    showOriginal: false,
+                    autoExposureEV: autoExposureEV
                 )
                 uniforms.destOffsetX = Float(col * cellW)
                 uniforms.destOffsetY = Float(row * cellH)
@@ -969,6 +1004,10 @@ final class Renderer {
                 uniforms.useDisplayLUT = 1
                 uniforms.useFilm = 0
                 uniforms.displayLUTStrength = 1
+                if lut.isACESccLMT {
+                    uniforms.lutDomain = 1
+                    uniforms.lutExposureEV = Float(lut.exposureEV ?? 0)
+                }
                 self.encodeProcess(
                     commandBuffer: command,
                     source: sourceTexture,
@@ -1007,23 +1046,20 @@ final class Renderer {
         }
     }
 
-    private func makeAspectFillTexture(_ image: CGImage, width: Int, height: Int) -> MTLTexture? {
-        var bytes = [UInt8](repeating: 0, count: width * height * 4)
-        guard let context = CGContext(
-            data: &bytes,
-            width: width, height: height,
-            bitsPerComponent: 8, bytesPerRow: width * 4,
-            space: CGColorSpace(name: CGColorSpace.sRGB)!,
-            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
-        ) else { return nil }
-        context.interpolationQuality = .high
-        let scale = max(CGFloat(width) / CGFloat(image.width), CGFloat(height) / CGFloat(image.height))
-        let drawW = CGFloat(image.width) * scale
-        let drawH = CGFloat(image.height) * scale
-        context.draw(image, in: CGRect(x: (CGFloat(width) - drawW) / 2,
-                                       y: (CGFloat(height) - drawH) / 2,
-                                       width: drawW, height: drawH))
-        return upload(bytes, width: width, height: height, write: false)
+    /// Aspect-fills a scene-linear image into the thumbnail cell and uploads
+    /// it as a half-float texture, so look thumbnails see the same source
+    /// domain as the editor.
+    private func makeAspectFillTexture(_ image: CIImage, width: Int, height: Int) -> MTLTexture? {
+        let scale = max(CGFloat(width) / image.extent.width,
+                        CGFloat(height) / image.extent.height)
+        let scaled = image.clampedToExtent()
+            .transformed(by: CGAffineTransform(scaleX: scale, y: scale))
+        let originX = scaled.extent.midX - CGFloat(width) / 2
+        let originY = scaled.extent.midY - CGFloat(height) / 2
+        let crop = CGRect(x: originX, y: originY, width: CGFloat(width), height: CGFloat(height))
+        let cropped = scaled.cropped(to: crop)
+            .transformed(by: CGAffineTransform(translationX: -crop.minX, y: -crop.minY))
+        return try? makeLinearTexture(from: cropped)
     }
 
     private func makeRGBA8Texture(width: Int, height: Int, write: Bool) -> MTLTexture? {
@@ -1033,16 +1069,6 @@ final class Renderer {
         descriptor.usage = write ? [.shaderRead, .shaderWrite] : [.shaderRead]
         descriptor.storageMode = .shared
         return device.makeTexture(descriptor: descriptor)
-    }
-
-    private func upload(_ bytes: [UInt8], width: Int, height: Int, write: Bool) -> MTLTexture? {
-        guard let texture = makeRGBA8Texture(width: width, height: height, write: write) else { return nil }
-        bytes.withUnsafeBytes { raw in
-            guard let base = raw.baseAddress else { return }
-            texture.replace(region: MTLRegionMake2D(0, 0, width, height), mipmapLevel: 0,
-                            withBytes: base, bytesPerRow: width * 4)
-        }
-        return texture
     }
 
     static func makeCGImage(_ bytes: [UInt8], width: Int, height: Int) -> CGImage? {
@@ -1091,9 +1117,15 @@ final class Renderer {
 
     // MARK: - Full resolution export
 
-    func renderFull(_ image: CGImage, edit: PhotoEdit, look: FilmVariant?) -> CGImage? {
-        guard let source = try? makeTexture(from: image) else { return nil }
-        let width = image.width, height = image.height
+    func renderFull(_ loaded: LoadedImage, edit: PhotoEdit, look: FilmVariant?,
+                    longEdge: Int? = nil) -> CGImage? {
+        var linear = loaded.linearImage ?? CIImage(cgImage: loaded.image)
+        if let longEdge, max(linear.extent.width, linear.extent.height) > CGFloat(longEdge) {
+            let scale = CGFloat(longEdge) / max(linear.extent.width, linear.extent.height)
+            linear = linear.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
+        }
+        guard let source = try? makeLinearTexture(from: linear) else { return nil }
+        let width = source.width, height = source.height
         guard let destination = makeRGBA8Texture(width: width, height: height, write: true),
               let command = queue.makeCommandBuffer() else { return nil }
         let bloomW = max(1, width / 2)
@@ -1109,13 +1141,18 @@ final class Renderer {
             edit: edit, look: look,
             size: CGSize(width: width, height: height),
             previewScale: 1,
-            showOriginal: false
+            showOriginal: false,
+            autoExposureEV: Float(loaded.autoExposureEV)
         )
         let userLUT = edit.lutID.flatMap { lutLibrary.userLUT($0) }
         if userLUT != nil {
             uniforms.useDisplayLUT = 1
             uniforms.useFilm = 0
             uniforms.displayLUTStrength = Float(edit.lutStrength)
+            if let info = edit.lutID.flatMap({ lutLibrary.userLUTInfo($0) }) {
+                uniforms.lutDomain = info.isACEScc ? 1 : 0
+                uniforms.lutExposureEV = info.exposureEV
+            }
         }
         // The preview path owns the shared curve texture; exports build a local
         // copy so a full-resolution render always honours the current curves.
