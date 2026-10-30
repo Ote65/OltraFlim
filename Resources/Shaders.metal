@@ -39,7 +39,7 @@ struct Uniforms {
     float imageWidth;
     float imageHeight;
     float previewScale;
-    float exposureBias;   // baked film exposure for neutral matching
+    float exposureBias;   // centre-weighted auto exposure baseline, in stops
     float destOffsetX;
     float destOffsetY;
     float useDisplayLUT;
@@ -267,10 +267,9 @@ kernel void blurVertical(texture2d<float, access::sample> src [[texture(0)]],
 // coverage texture, `grainVertical` filters the columns and compares the
 // coverage with the clean image, which preserves the mean density (and tone).
 
-// RMS granularity (diffuse, x1000) sampled at density 0.0 ... 1.0 for the
-// three emulsion layers of a typical ISO 400 colour negative. Blue is the
-// coarsest layer and red the finest, as in the datasheet curves used by
-// AlcedoStudio.
+// RMS granularity (diffuse, x1000) sampled at density 0.0 ... 1.0, approximated
+// from published granularity data for a typical ISO 400 colour negative. Each
+// emulsion layer has its own curve; blue is the coarsest and red the finest.
 constant float kGrainGranularityR[11] = {
     1.95f, 2.10f, 2.48f, 2.60f, 2.72f, 2.86f, 2.99f, 3.10f, 3.19f, 3.28f, 3.36f
 };
@@ -312,11 +311,10 @@ inline float grainSigma(float grainSize, float roughness, uint width, uint heigh
 }
 
 // Gaussian taps sit on every pixel row/column so neighbouring pixels share the
-// particle lattice. The radius is capped to keep the cost bounded on large
-// exports (the kernel then becomes a wide, nearly flat average, which still
-// produces clumps of the requested size).
+// particle lattice. The radius is capped to keep the cost bounded on the
+// largest exports; up to 18 px still covers two sigma for a 45 MP frame.
 inline int grainRadius(float sigma) {
-    return min(9, max(1, int(ceil(2.0f * sigma))));
+    return min(18, max(1, int(ceil(2.0f * sigma))));
 }
 
 kernel void grainHorizontal(texture2d<float, access::sample> src [[texture(0)]],

@@ -130,7 +130,11 @@ Renderer invariants:
 - Source and processed textures are `rgba16Float`; the shader expects
   **scene-linear Rec.709** and never decodes sRGB.
 - `CIRAWFilter` runs with `boostAmount/boostShadowAmount/localToneMapAmount = 0`
-  so RAW stays linear with highlight headroom above 1.0.
+  and `extendedDynamicRangeAmount = 1` so RAW stays linear with highlight
+  headroom above 1.0 (the property defaults to 0, which clips at 1.0).
+- Imported ACEScc LMTs always display through `neutral-0`; never through the
+  look's `neutral15`, otherwise a previously selected +1.5 EV look would
+  double-brighten the import.
 - `renderFull` takes a `LoadedImage` and builds its own curve texture.
 - `grainSeed` remains a small float (`abs(hash)%4096/100`).
 - Imported LUT cap: 50 entries, max 65³. ACEScc LMTs (`input_space` header)

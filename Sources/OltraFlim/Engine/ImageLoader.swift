@@ -190,6 +190,9 @@ final class ImageLoader {
         filter.boostAmount = 0
         filter.boostShadowAmount = 0
         filter.localToneMapAmount = 0
+        // Without this the RAW is clipped at 1.0; the ACEScc domain needs the
+        // highlight headroom. 1.0 is Apple's default EDR amount.
+        filter.extendedDynamicRangeAmount = 1
         filter.exposure = 0
         filter.isGamutMappingEnabled = false
         if filter.isLensCorrectionSupported {

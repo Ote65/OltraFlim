@@ -76,6 +76,9 @@ Alcedo 把这套物理模型离线烘焙成 113 个 **ACEScc→ACEScc LMT**（�
 
 ## 3. 胶片颗粒
 
+> 本节记录的是改造前的评估（分支提交 `3bcafb2`）。随后本分支已把颗粒改成
+> 布尔粒子模型，实测见 §6 第 1 条与 `STATUS.md` 3.8。
+
 ### 3.1 三种实现的结构差异
 
 | | OltraFlim | Alcedo | spektrafilm |
@@ -89,7 +92,8 @@ Alcedo 把这套物理模型离线烘焙成 113 个 **ACEScc→ACEScc LMT**（�
 
 代码：
 
-- OltraFlim：`Resources/Shaders.metal` 第 531–580 行
+- OltraFlim（改造前）：`processImage` 内的多八度 `value_noise` 颗粒块（已删除；
+  现为 `grainHorizontal` / `grainVertical`）
 - Alcedo：`edit/runtime/metal/shader/drt_neighbor.metal` 的 `DrtFilmSample/DrtFilmHorizontal/DrtFilmApply`，以及 `edit/runtime/cuda/cuda_film_grain_math.cuh`
 - spektrafilm：`src/spektrafilm/model/grain.py` 的 `layer_particle_model` / `apply_grain_to_density_layers` / `apply_grain`
 
@@ -106,7 +110,7 @@ Alcedo 把这套物理模型离线烘焙成 113 个 **ACEScc→ACEScc LMT**（�
 - 高光处用了 `0.72–0.96` 的软阈值人为压暗/收敛；
 - 色度去相关是固定的 `0.68→0.18`，不是逐层物理。
 
-**OltraFlim 最不物理**：它是**平滑噪声**，没有离散粒子；幅度靠 `4l(1-l)` 抛物线和高光掩膜，没有 datasheet 依据；彩色颗粒是固定比例的三通道噪声。优点是便宜、分辨率无关、不会闪；缺点是高光/阴影的颗粒形态会偏“电子噪点”。
+**OltraFlim 改造前最不物理**：它是**平滑噪声**，没有离散粒子；幅度靠 `4l(1-l)` 抛物线和高光掩膜，没有 datasheet 依据；彩色颗粒是固定比例的三通道噪声。优点是便宜、分辨率无关、不会闪；缺点是高光/阴影的颗粒形态会偏“电子噪点”。
 
 实测 OltraFlim 的颗粒幅度（4 段灰阶，grain=100，σ 以 0–255 计）：
 

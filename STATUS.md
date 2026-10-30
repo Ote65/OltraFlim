@@ -123,14 +123,15 @@ Portra 400 LUT 上逐参数渲染两端并统计平均 / 99 分位 / 最大像�
 对照 spektrafilm 上游与 Alcedo 的 LUT 导出格式，修正了 RAW 输入与 LUT 域：
 
 - RAW 改用 `CIRAWFilter` 场景线性解码（`boostAmount/boostShadowAmount/
-  localToneMapAmount = 0`），预览与导出纹理改为 `rgba16Float`，线性值可
-  超过 1.0。旧路径把 RAW 先经 ImageIO 显示渲染成 8-bit sRGB，ACEScc 坐标
-  最高只到 0.555，LUT 的高光肩部整段没用上。
+  localToneMapAmount = 0`，`extendedDynamicRangeAmount = 1`），预览与导出纹理
+  改为 `rgba16Float`，线性值可超过 1.0。旧路径把 RAW 先经 ImageIO 显示渲染成
+  8-bit sRGB，ACEScc 坐标最高只到 0.555，LUT 的高光肩部整段没用上。
 - 补上游式自动曝光：128² 线性图 + 中心加权（σ=0.2）均值 → 0.184，
   结果走 `exposureBias`（原先是死字段）。
 - 导入 `.cube` 解析 `# ALCEDO_LUT` 头：ACEScc LMT 走 ACEScc → LMT →
   `neutral-0`（ACES 2.0 SDR 显示变换）路径；其余仍按 Rec.709 显示 LUT。
-  负值不再截断，`DOMAIN_MIN/MAX` 改为逐通道归一化。
+  负值不再截断，`DOMAIN_MIN/MAX` 改为逐通道归一化。导入 LMT 的显示变换固定
+  用 `neutral-0`，不会继承当前胶片 look 的 `neutral15`。
 - ACEScc 公式改为 S-2014-003（2⁻¹⁶ 阈值 + 0.5 系数），同步修改
   `Tools/build_luts.py`。
 - 无头 RenderCheck 证据（Sony DSC03406.ARW，4240×2832，全部调整=0）：
@@ -143,7 +144,10 @@ DSC03406.JPG + spc 同一 look       p05 0.136  p50 0.576  p95 0.830  max 0.909
 ```
 
 内置 33³ 包与直接导入 65³ 源 LMT 的结果在灰阶上差 <2%，确认烘焙与运行时
-ACEScc 路径一致。**以上均为无头渲染，未启动 App、未做 UI 对比。**
+ACEScc 路径一致。另有线性域探针（DSC03406.ARW，256² 采样，`RGBAf`）：
+场景线性最大值 **3.02**，> 1.0 的采样 155/43776；`extendedDynamicRangeAmount`
+0 与 1 结果一致，仍显式设为 1 以免依赖系统默认值。
+**以上均为无头渲染，未启动 App、未做 UI 对比。**
 
 ### 3.6 分支 `agent/oltra/colour-pipeline`：外部算法可移植性
 
@@ -187,7 +191,7 @@ AlcedoStudio 的源码（C++20 / Qt / Metal·CUDA·OpenCL）已对照过。能�
 完全跳过）：
 
 - 每个银盐粒子是布尔样本：在共享的像素格点上取值，阈值 = 该点的局部密度；
-  水平/垂直两段可分离高斯窗（tap 间距 1 px，半径 ±2σ、最多 ±9 px）形成团簇。
+  水平/垂直两段可分离高斯窗（tap 间距 1 px，半径 ±2σ、最多 ±18 px）形成团簇。
 - 输出 = 干净像素 + (滤波覆盖率 − 干净像素) × 颗粒度 × 方差归一化；滤波
   覆盖率的均值等于局部密度，因此整体影调不漂移；`Σw²` 归一化让
   `grainSize` 只改变团簇大小、不改变颗粒强度。

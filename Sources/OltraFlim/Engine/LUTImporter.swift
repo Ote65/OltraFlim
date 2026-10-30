@@ -13,7 +13,7 @@ struct CubeLUT {
     var exposureEV: Double = 0
 
     var isACEScc: Bool {
-        inputSpace?.lowercased() == "acescc"
+        LUTInputSpace.isACEScc(inputSpace)
     }
 }
 

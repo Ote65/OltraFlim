@@ -93,8 +93,7 @@ struct RenderUniforms {
     var lutExposureEV: Float = 0
 
     init(edit: PhotoEdit, look: FilmVariant?, size: CGSize, previewScale: CGFloat,
-         showOriginal: Bool, autoExposureEV: Float = 0,
-         lutDomain: Float = 0, lutExposureEV: Float = 0) {
+         showOriginal: Bool, autoExposureEV: Float = 0) {
         let a = edit.adjustments
         exposure = Float(a.exposure)
         contrast = Float(a.contrast)
@@ -124,8 +123,6 @@ struct RenderUniforms {
         // Film-pack exposure is baked into the LUT itself, so this slot is
         // free for the upstream-style auto exposure baseline.
         exposureBias = autoExposureEV
-        self.lutDomain = lutDomain
-        self.lutExposureEV = lutExposureEV
         displayLUTStrength = Float(edit.lutStrength)
         tonalTransparency = Float(a.tonalTransparency / 100)
         colorTransparency = Float(a.colorTransparency / 100)
@@ -150,6 +147,13 @@ struct RenderUniforms {
         vignetteFeather = Float(a.vignetteFeather)
         vignetteCenterX = Float(a.vignetteCenterX)
         vignetteCenterY = Float(a.vignetteCenterY)
+    }
+
+    /// Imported LUTs declare whether they operate in ACEScc (LMT) or Rec.709.
+    static func applyLUTDomain(isACEScc: Bool, exposureEV: Float,
+                               to uniforms: inout RenderUniforms) {
+        uniforms.lutDomain = isACEScc ? 1 : 0
+        uniforms.lutExposureEV = exposureEV
     }
 }
 
@@ -621,13 +625,18 @@ final class Renderer {
         let processed = processedTexture
         let grainTarget = grainTexture
         let grainStage = grainScratch
-        let neutral = neutralTexture ?? lutLibrary.neutral0 ?? blackTexture
-        let film = filmTexture ?? neutral
         let userLUT = userLUTTexture
+        let edit = currentEdit
+        let usesDisplayLUT = edit.lutID != nil && userLUT != nil
+        // An imported ACEScc LMT is displayed through the neutral-0 transform;
+        // the +1.5 EV neutral would double-brighten it.
+        let neutral = usesDisplayLUT
+            ? (lutLibrary.neutral0 ?? blackTexture)
+            : (neutralTexture ?? lutLibrary.neutral0 ?? blackTexture)
+        let film = filmTexture ?? neutral
         let curves = curveTexture ?? identityCurveTexture
         let stats = toneStats
         let bloom = bloomA
-        let edit = currentEdit
         let look = currentLook
         let compare = compareEnabled
         let split = compareSplit
@@ -655,10 +664,11 @@ final class Renderer {
                 showOriginal: lutLibrary.neutral0 == nil,
                 autoExposureEV: autoEV
             )
-            uniforms.useDisplayLUT = (edit.lutID != nil && userLUT != nil) ? 1 : 0
-            if uniforms.useDisplayLUT > 0, let lutInfo {
-                uniforms.lutDomain = lutInfo.isACEScc ? 1 : 0
-                uniforms.lutExposureEV = lutInfo.exposureEV
+            uniforms.useDisplayLUT = usesDisplayLUT ? 1 : 0
+            if uniforms.useDisplayLUT > 0 {
+                RenderUniforms.applyLUTDomain(isACEScc: lutInfo?.isACEScc ?? false,
+                                              exposureEV: lutInfo?.exposureEV ?? 0,
+                                              to: &uniforms)
             }
             uniforms.useFilm = uniforms.useDisplayLUT > 0 ? 0 : (look == nil ? 0 : 1)
             uniforms.displayLUTStrength = Float(edit.lutStrength)
@@ -1067,10 +1077,9 @@ final class Renderer {
                 uniforms.useDisplayLUT = 1
                 uniforms.useFilm = 0
                 uniforms.displayLUTStrength = 1
-                if lut.isACESccLMT {
-                    uniforms.lutDomain = 1
-                    uniforms.lutExposureEV = Float(lut.exposureEV ?? 0)
-                }
+                RenderUniforms.applyLUTDomain(isACEScc: lut.isACESccLMT,
+                                              exposureEV: Float(lut.exposureEV ?? 0),
+                                              to: &uniforms)
                 self.encodeProcess(
                     commandBuffer: command,
                     source: sourceTexture,
@@ -1212,10 +1221,10 @@ final class Renderer {
             uniforms.useDisplayLUT = 1
             uniforms.useFilm = 0
             uniforms.displayLUTStrength = Float(edit.lutStrength)
-            if let info = edit.lutID.flatMap({ lutLibrary.userLUTInfo($0) }) {
-                uniforms.lutDomain = info.isACEScc ? 1 : 0
-                uniforms.lutExposureEV = info.exposureEV
-            }
+            let info = edit.lutID.flatMap { lutLibrary.userLUTInfo($0) }
+            RenderUniforms.applyLUTDomain(isACEScc: info?.isACEScc ?? false,
+                                          exposureEV: info?.exposureEV ?? 0,
+                                          to: &uniforms)
         }
         // The preview path owns the shared curve texture; exports build a local
         // copy so a full-resolution render always honours the current curves.
@@ -1233,7 +1242,12 @@ final class Renderer {
         uniforms.blackDeltaB = Float(toneStats.blackDeltaB)
         let film: MTLTexture
         let neutral: MTLTexture
-        if let look, let texture = lutLibrary.film[look.id] {
+        if userLUT != nil {
+            // The imported LMT is displayed through neutral-0, never the
+            // +1.5 EV variant (see the preview path).
+            film = lutLibrary.neutral0 ?? blackTexture
+            neutral = film
+        } else if let look, let texture = lutLibrary.film[look.id] {
             film = texture
             neutral = look.exposureEV >= 0.75 ? (lutLibrary.neutral15 ?? texture) : (lutLibrary.neutral0 ?? texture)
         } else {

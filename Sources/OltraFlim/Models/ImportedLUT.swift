@@ -1,5 +1,15 @@
 import Foundation
 
+/// A LUT header can spell its input space in several ways ("ACEScc",
+/// "ACEScc (AP1)", "acescc"); the domain check is shared by the importer and
+/// the stored record.
+enum LUTInputSpace {
+    static func isACEScc(_ name: String?) -> Bool {
+        guard let name else { return false }
+        return name.lowercased().contains("acescc")
+    }
+}
+
 struct ImportedLUT: Identifiable, Codable, Hashable {
     let id: String
     var name: String
@@ -14,7 +24,7 @@ struct ImportedLUT: Identifiable, Codable, Hashable {
     var exposureEV: Double? = nil
 
     var isACESccLMT: Bool {
-        inputSpace?.lowercased() == "acescc"
+        LUTInputSpace.isACEScc(inputSpace)
     }
 
     var subtitle: String {

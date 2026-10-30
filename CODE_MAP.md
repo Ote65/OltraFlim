@@ -266,7 +266,7 @@ CanvasMTKView.draw
 颗粒不在 `processImage` 里：`grainHorizontal` 把布尔粒子场按行过滤到
 `grainScratch`，`grainVertical` 再按列过滤并与干净图像相减，之后按颗粒度
 曲线缩放。tap 间距固定 1 px（保证相邻像素共享粒子格点），半径 ±2σ 且最多
-±9 px；垂直 pass 用 `Σw²` 归一化方差，保证 `grainSize` 不改变颗粒强度。
+±18 px；垂直 pass 用 `Σw²` 归一化方差，保证 `grainSize` 不改变颗粒强度。
 `grain = 0` 时两个 pass 完全跳过。
 
 ### 6.3 导出路径
