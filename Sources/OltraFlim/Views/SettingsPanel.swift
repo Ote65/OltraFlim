@@ -13,6 +13,7 @@ struct SettingsPanel: View {
             ScrollView {
                 VStack(spacing: 12) {
                     appearanceCard
+                    developCard
                     exportCard
                     maintenanceCard
                     footer
@@ -109,6 +110,21 @@ struct SettingsPanel: View {
                 SettingsSwitch(isOn: Binding(
                     get: { model.reduceMotion },
                     set: { model.reduceMotion = $0 }
+                ))
+            }
+        }
+    }
+
+    // MARK: Develop
+
+    private var developCard: some View {
+        SettingsCard(title: T("显影", "DEVELOP")) {
+            SettingsRow(title: T("自动曝光", "Auto exposure"),
+                        detail: T("按画面加权亮度把中间调归一到 18% 灰；关闭后 RAW 保留原始曝光",
+                                   "Normalises the weighted mean to 18% grey; off keeps the RAW's own exposure")) {
+                SettingsSwitch(isOn: Binding(
+                    get: { model.autoExposure },
+                    set: { model.autoExposure = $0 }
                 ))
             }
         }

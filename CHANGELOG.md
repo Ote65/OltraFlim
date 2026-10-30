@@ -23,6 +23,9 @@ All notable changes to OltraFlim. Dates are project-local.
   per-channel `DOMAIN_MIN/MAX` are preserved instead of clipped.
 - ACEScc encode/decode now follows S-2014-003 (2⁻¹⁶ toe with the 0.5 factor) in
   both `Shaders.metal` and `Tools/build_luts.py`.
+- New **Auto exposure** switch in both settings surfaces (on by default, as in
+  spektrafilm). Turning it off keeps the RAW's absolute exposure for edits that
+  were graded before this change.
 
 ## 1.4 — 2026-10-30
 

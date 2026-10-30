@@ -88,6 +88,33 @@ struct SettingsView: View {
             Rectangle().fill(DS.hairline).frame(height: 1)
                 .padding(.vertical, 18)
 
+            VStack(alignment: .leading, spacing: 10) {
+                Text(T("显影", "DEVELOP"))
+                    .font(DS.font(8.5, .medium))
+                    .tracking(1.2)
+                    .foregroundStyle(DS.textTertiary)
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(T("自动曝光", "Auto exposure"))
+                            .font(DS.label(10.5))
+                            .foregroundStyle(DS.textSecondary)
+                        Text(T("按画面加权亮度把中间调归一到 18% 灰；关闭后 RAW 保留原始曝光",
+                               "Normalises the weighted mean to 18% grey; off keeps the RAW's own exposure"))
+                            .font(DS.label(9))
+                            .foregroundStyle(DS.textTertiary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: 12)
+                    Toggle("", isOn: $model.autoExposure)
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                        .tint(DS.accent)
+                }
+            }
+
+            Rectangle().fill(DS.hairline).frame(height: 1)
+                .padding(.vertical, 18)
+
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Text(T("存储与缓存", "STORAGE & CACHE"))

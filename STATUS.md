@@ -145,7 +145,25 @@ DSC03406.JPG + spc 同一 look       p05 0.136  p50 0.576  p95 0.830  max 0.909
 内置 33³ 包与直接导入 65³ 源 LMT 的结果在灰阶上差 <2%，确认烘焙与运行时
 ACEScc 路径一致。**以上均为无头渲染，未启动 App、未做 UI 对比。**
 
-### 3.6 数据与缓存（1.4 增量，仅编译验证）
+### 3.6 分支 `agent/oltra/colour-pipeline`：外部算法可移植性
+
+AlcedoStudio 的源码（C++20 / Qt / Metal·CUDA·OpenCL）已对照过。能在欧胶片
+现有架构里落地的与落不了地的：
+
+| 目标 | 结论 | 原因 |
+| --- | --- | --- |
+| ACEScc LMT + ACES 2.0 显示变换 | 已落地 | 烘焙的 `neutral-0` 就是 OCIO ACES 2.0 SDR；导入 LMT 走同一域 |
+| LUT 按头部声明分流 | 已落地 | 解析 `# ALCEDO_LUT` 的 `input_space` |
+| 自动曝光 | 已落地，可在设置里关闭 | 中心加权均值 → 0.184 |
+| ACES 2.0 逐像素 DRT | 未做 | aces-core 参考实现含 CAM16 + 色域边界表，约 2500 行 CTL；现有 33³ 表化路径已验证 |
+| OpenDRT | 未做 | 与 ACES 2.0 并列的另一种显示变换，不是当前 LUT 的匹配目标 |
+| LibRaw / Lensfun / Exiv2 / OpenImageIO / OpenCV / OCIO / DuckDB / Qt | 未做 | 项目用 `swiftc` 直编、无依赖管理；`CIRAWFilter` 覆盖解码与镜头校正 |
+| rawtoaces 相机矩阵 | 未做 | `CIRAWFilter` 不暴露相机线性 RGB，无法在外部套矩阵 |
+| RCD / DemosaicNet 去马赛克 | 未做 | 同上；Apple RAW API 不提供去马赛克选择 |
+| 对立色高光重建 | 未做 | 已由 `CIRAWFilter` 内部完成，无注入点 |
+| IPOL 2017 颗粒 | 已有近似 | 多八度 + 密度块 + 彩粒，已在 1.4 重做 |
+
+### 3.7 数据与缓存（1.4 增量，仅编译验证）
 
 - 原图仍只按路径索引：`importURLs` / `importFolders` 不复制、不移动用户文件。
 - 缩略图写入 `~/Library/Caches/studio.oltra.oltraflim/thumbnails-v1`，

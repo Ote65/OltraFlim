@@ -371,6 +371,8 @@ final class Renderer {
     var histogramRequested = false
     var compareEnabled = false
     var compareSplit: Double = 0.5
+    /// Mirrors the user setting; when false the RAW keeps its absolute exposure.
+    var autoExposureEnabled = true
 
     var onHistogram: ((HistogramData, ToneStats) -> Void)?
     var onError: ((String) -> Void)?
@@ -612,7 +614,7 @@ final class Renderer {
         let look = currentLook
         let compare = compareEnabled
         let split = compareSplit
-        let autoEV = autoExposureEV
+        let autoEV = autoExposureEnabled ? autoExposureEV : 0
         let lutInfo = currentLUTInfo
         let shouldProcess = needsProcess
         needsProcess = false
@@ -1142,7 +1144,7 @@ final class Renderer {
             size: CGSize(width: width, height: height),
             previewScale: 1,
             showOriginal: false,
-            autoExposureEV: Float(loaded.autoExposureEV)
+            autoExposureEV: autoExposureEnabled ? Float(loaded.autoExposureEV) : 0
         )
         let userLUT = edit.lutID.flatMap { lutLibrary.userLUT($0) }
         if userLUT != nil {

@@ -225,6 +225,17 @@ final class AppModel {
         }
     }
 
+    /// Baseline auto exposure: the scene's center-weighted mean is normalised
+    /// to 18% grey before the film LUT, mirroring spektrafilm. Turning it off
+    /// keeps the RAW's absolute exposure.
+    var autoExposure: Bool = true {
+        didSet {
+            UserDefaults.standard.set(autoExposure, forKey: "autoExposure")
+            renderer?.autoExposureEnabled = autoExposure
+            if currentPhoto != nil { reapplyCurrentLook() }
+        }
+    }
+
     var defaultExportDirectoryPath: String? {
         didSet {
             if let path = defaultExportDirectoryPath {
@@ -371,6 +382,9 @@ final class AppModel {
         if renderer == nil {
             startupError = T("OltraFlim 无法启动 Metal 胶片引擎。", "OltraFlim could not start the Metal film engine.")
         }
+        let autoExposureDefault = defaults.object(forKey: "autoExposure") as? Bool ?? true
+        autoExposure = autoExposureDefault
+        renderer?.autoExposureEnabled = autoExposureDefault
 
         libraryDisplay = LibraryDisplayMode(rawValue: defaults.string(forKey: "libraryDisplay") ?? "") ?? .grid
         libraryGrouping = LibraryGrouping(rawValue: defaults.string(forKey: "libraryGrouping") ?? "") ?? .none
@@ -1906,7 +1920,7 @@ final class AppModel {
                 return
             }
             renderer.generateImportedLUTThumbnails(source: source.linear ?? CIImage(cgImage: source.image),
-                                                   autoExposureEV: Float(source.autoEV),
+                                                   autoExposureEV: autoExposure ? Float(source.autoEV) : 0,
                                                    luts: self.importedLUTs) { [weak self] images in
                 guard let self else { return }
                 if generation == self.thumbGeneration {
@@ -1927,7 +1941,7 @@ final class AppModel {
 
         if needsFilm {
             renderer.generateLookThumbnails(source: source.linear ?? CIImage(cgImage: source.image),
-                                            autoExposureEV: Float(source.autoEV),
+                                            autoExposureEV: autoExposure ? Float(source.autoEV) : 0,
                                             looks: variants) { [weak self] images in
                 guard let self else { return }
                 if generation == self.thumbGeneration {
