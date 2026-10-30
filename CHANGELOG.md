@@ -2,6 +2,41 @@
 
 All notable changes to OltraFlim. Dates are project-local.
 
+## 1.4 — 2026-10-30
+
+### Fixed
+
+- **Highlights** was effectively inert after the film LUT: ±100 changed the
+  picture by ~4/255. It now operates on printed luminance (measured 44/255).
+- Bloom reused the halation blur, but the blur forced alpha to 1, so threshold
+  and radius did nothing and bloom brightened the whole frame. Alpha now carries
+  the untinted highlight energy through both blur passes.
+- Green saturation travel widened after the audit showed ~1/255 response.
+
+### Added
+
+- **Grain 2.0**: band-limited three-octave grain with slowly varying density
+  patches, a midtone-weighted tone response, `Grain roughness`, and coarser
+  dye-cloud colour grain. Grain size is normalised to the short side so preview
+  and export match.
+- **Midtones** and **Highlight rolloff** in the Light tab.
+- **Bloom** under Film Texture, sharing the highlight threshold/radius with
+  halation.
+- **Vignette** detail: midpoint, roundness, feather, centre X/Y.
+- **In-app settings panel** — a floating gear on the library opens text size,
+  reduce motion, default export folder/format, thumbnail cache stats and clear.
+- **Disk thumbnail cache** — previews persist under `~/Library/Caches/` with
+  size pruning, a memory cap and memory-pressure eviction.
+- **Imported LUTs persist** — user LUTs are copied to Application Support and
+  missing registry entries self-heal.
+- New app logo assets.
+
+### Changed
+
+- Vignette defaults reproduce the previous look (midpoint 50, feather 50).
+- Version 1.4 / build 5. No new DMG/ZIP has been built or published yet;
+  v1.3 remains the latest release.
+
 ## 1.3 — 2026-10-30
 
 ### Added

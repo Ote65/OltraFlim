@@ -11,7 +11,7 @@ the original, and export full resolution. The library remembers paths,
 favourites, colour labels and per-file edits without copying or deleting your
 files.
 
-- Version: **1.3 / build 4** · macOS 14+
+- Version: **1.4 / build 5** · macOS 14+
 - Download: [GitHub Releases](https://github.com/Ote65/OltraFlim/releases)
 - License: **source-available, noncommercial** — see [License](#license)
 
@@ -45,7 +45,7 @@ OpenColorIO. It does not embed Python, Electron or a web view.
 ```
 
 The app is staged at `dist/OltraFlim.app` and ad-hoc signed. macOS 14+ is required.
-A local build produces `dist/OltraFlim-1.3.dmg` / `.zip`; official packages are
+A local build produces `dist/OltraFlim-1.4.dmg` / `.zip`; official packages are
 attached to [GitHub Releases](https://github.com/Ote65/OltraFlim/releases).
 
 > This machine only has Command Line Tools (no Xcode) and its install ships two
@@ -83,6 +83,29 @@ Film library: search by film, brand or ISO; filter by brand; the funnel menu
 filters type (negative / slide / cinema / instant / special), engine (SpektraFilm
 / Spectral Film) and favourites. Every stock exposes its print/render variants in
 the inspector.
+
+## New in 1.4
+
+- **Highlights fixed** — the slider was multiplied in scene-linear before the
+  film LUT, where the print shoulder crushed it: ±100 moved the image by only
+  ~4/255. It now shapes the printed luminance, so recovery and lift behave like
+  a darkroom tool (measured ±100: 44/255).
+- **Film grain rebuilt** — replaces per-pixel value noise with band-limited
+  multi-octave grain, slowly varying emulsion density patches, a midtone-heavy
+  tone response, a roughness control and dye-cloud colour grain. Grain size is
+  normalised to the image, so preview and full-resolution exports match.
+- **Richer light controls** — Midtones (18% grey band) and Highlight rolloff
+  (print shoulder) join exposure/contrast/highlights/shadows/whites/blacks.
+- **Soft bloom** — neutral optical diffusion that shares the highlight
+  extraction with halation, with amount under Film Texture.
+- **Lightroom-style vignette** — amount, midpoint, roundness, feather and a
+  movable optical centre (X/Y).
+- **Audit-driven fixes** — green saturation widened; bloom alpha preserved
+  through the blur so threshold and radius actually work.
+- **In-app settings** — text size, reduce motion, default export folder/format
+  and cache maintenance from a floating gear on the library.
+- **Faster library** — disk-backed thumbnail cache with size and memory caps,
+  plus imported LUTs that survive reinstall.
 
 ## New in 1.3
 

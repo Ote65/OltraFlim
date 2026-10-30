@@ -1,9 +1,9 @@
 # OltraFlim 软件状况
 
-> 版本：**1.3 / build 4**  
+> 版本：**1.4 / build 5**  
 > 更新时间：2026-10-30  
 > 仓库：<https://github.com/Ote65/OltraFlim>  
-> Release：<https://github.com/Ote65/OltraFlim/releases/tag/v1.3>  
+> 最新发布：<https://github.com/Ote65/OltraFlim/releases/tag/v1.3>  
 > 平台：macOS 14+  
 > 构建：SwiftUI + AppKit + Metal，无 Xcode，`swiftc` 直接构建  
 > 许可：应用代码 PolyForm Noncommercial 1.0.0；LUT 资产 CC BY-SA 4.0
@@ -12,8 +12,9 @@
 
 OltraFlim 已经是一个可构建、可打包的原生 macOS 胶片模拟应用，核心功能、
 照片库、文件夹索引、编辑、曲线、通透、颗粒/光晕、LUT 导入和导出均已实现。
+1.4 重做了显影参数链路中的高光、颗粒、柔光与暗角，并新增中间调与高光过渡。
 
-**本轮（1.3）没有启动应用做 UI 点击测试。** 这是按项目所有者的明确要求执行：
+**本轮（1.4）没有启动应用做 UI 点击测试。** 这是按项目所有者的明确要求执行：
 由用户手动验收。因此下表中“运行手测”列凡是“待测”的，不能声称已经通过。
 
 ## 2. 功能状态
@@ -31,12 +32,16 @@ OltraFlim 已经是一个可构建、可打包的原生 macOS 胶片模拟应用
 | 点击照片进入编辑 | 完成 | 通过 | 待测 |
 | 编辑页返回照片库/文件夹 | 完成 | 通过 | 待测 |
 | 光线 / 色彩 / 曲线 三 Tab | 完成 | 通过 | 待测 |
+| 高光恢复（显示空间） | 1.4 修复 | 通过 | 待测 |
+| 中间调 / 高光过渡 | 1.4 新增 | 通过 | 待测 |
 | 专业色彩参数 | 完成 | 通过 | 待测 |
 | 明暗曲线 + R/G/B 曲线 | 完成 | 通过 | 待测 |
 | 明暗通透 / 颜色通透 | 完成 | 通过 | 待测 |
-| 颗粒 / 颗粒尺寸 / 彩噪 / 阴影颗粒 | 完成 | 通过 | 待测 |
+| 颗粒（多八度 / 密度 / 粗糙度 / 彩粒 / 暗部） | 1.4 重做 | 通过 | 待测 |
 | 光晕阈值 / 半径 / 暖度 | 完成 | 通过 | 待测 |
-| 暗角 / 褪色 | 完成 | 通过 | 待测 |
+| 柔光 Bloom | 1.4 新增 | 通过 | 待测 |
+| 暗角 / 中点 / 圆度 / 柔和度 / 中心 | 1.4 扩展 | 通过 | 待测 |
+| 褪色 | 完成 | 通过 | 待测 |
 | 原图对比滑动杆 | 完成 | 通过 | 待测 |
 | Ctrl/Cmd/Option + 滚轮缩放 | 完成（方向已修正） | 通过 | 待测 |
 | 阻尼平移 / 空格复位 | 完成 | 通过 | 待测 |
@@ -46,13 +51,16 @@ OltraFlim 已经是一个可构建、可打包的原生 macOS 胶片模拟应用
 | LUT 导入（≤50 个，≤65³） | 完成 | 通过 | 待测 |
 | 中文/English 切换 | 完成 | 通过 | 待测 |
 | JPEG/PNG/TIFF/HEIC 导出 | 完成 | 通过 | 待测 |
+| 图片缓存磁盘化 + 设置面板清理 | 完成 | 通过 | 待测 |
+| 预览/缩略图内存上限 + 内存压力回收 | 完成 | 通过 | 待测 |
+| 导入 LUT 持久化（Application Support、缺失自愈） | 完成 | 通过 | 待测 |
 | DMG / ZIP 打包 | 完成 | 通过 | 待测 |
 
 ## 3. 已验证的事实
 
 ### 3.1 构建
 
-- 最终 release 构建：`28` 个 Swift 文件，无编译错误。
+- 最终 release 构建：`30` 个 Swift 文件，无编译错误。
 - 仅有 1 条既存的 Swift 6 并发警告：
   `AppModel.swift` 中 Toast 自动消失闭包里的 `self` 捕获。
 - 构建使用本机 CLT 的 `SwiftBridging` modulemap 双定义 workaround；
@@ -61,11 +69,13 @@ OltraFlim 已经是一个可构建、可打包的原生 macOS 胶片模拟应用
 
 ### 3.2 打包
 
-- `dist/OltraFlim.app`：ad-hoc codesign，版本 1.3 / build 4。
-- `dist/OltraFlim-1.3.dmg`：14 MB，已验证可挂载、包含 `OltraFlim.app`、
-  `Applications` 链接、`Read Me.txt`，版本为 1.3 / 4。
-- `dist/OltraFlim-1.3.zip`：12 MB。
-- 校验和：
+- 1.4 build 5 只构建并暂存到 `dist/OltraFlim.app`（ad-hoc codesign），
+  尚未重新生成 DMG/ZIP，也尚未发布。
+- 上一个发布产物仍是 1.3：
+  - `dist/OltraFlim-1.3.dmg`：14 MB，已验证可挂载、包含 `OltraFlim.app`、
+    `Applications` 链接、`Read Me.txt`，版本为 1.3 / 4。
+  - `dist/OltraFlim-1.3.zip`：12 MB。
+- 1.3 校验和：
 
 ```text
 aa14a23583cff1e48a7595f0fc33a2ada919b75b76c341f7d89fbac43d9bfb03  OltraFlim-1.3.dmg
@@ -91,6 +101,40 @@ beb075ed779e06ec8ae14fee58473181f7f2dea265c439fac2c24ada0f142ff5  OltraFlim-1.3.
 这些是 1.2 的 headless 证据；1.3 新增的照片库/文件夹/窗口 chrome
 没有做自动 UI 测试，需用户手动验收。
 
+### 3.4 参数审计（1.4，headless）
+
+用基于 `Tools/RenderCheck` 渲染路径的临时审计程序，在 2200×1650 样张 +
+Portra 400 LUT 上逐参数渲染两端并统计平均 / 99 分位 / 最大像素差（0–255）：
+
+- **高光 ±100**：1.3 为 4.38，1.4 为 44.15（p99 84.7）。确认已从“几乎无效”
+  变成与白色（40.21）、阴影（58.25）同量级。
+- **中间调 ±100**：24.64；**高光过渡 0→100**：20.01。
+- **颗粒 0→100**：2.81（p99 15.7）；**尺寸 0→100**：2.59；**粗糙度 0→100**：
+  5.37；**暗部颗粒 0→100**：0.75（随画面阴影占比变化）。
+- **柔光 0→100**：阈值 30 时 2.22（p99 26），阈值 55 时 0.94（p99 13.3）；
+  阈值 / 半径现在真实生效（修复前 alpha 被模糊写死为 1）。
+- **暗角 -100/+100**：43.05；中点 0/100：33.50；圆度 -100/+100：8.86；
+  柔和度 0/100：28.40；中心 X/Y ±100：25.56 / 24.81。
+- **绿色饱和 ±100**：0.96 → 2.37。
+- 其余颜色、细节、通透参数维持 1.2 的响应水平。
+
+### 3.5 数据与缓存（1.4 增量，仅编译验证）
+
+- 原图仍只按路径索引：`importURLs` / `importFolders` 不复制、不移动用户文件。
+- 缩略图写入 `~/Library/Caches/studio.oltra.oltraflim/thumbnails-v1`，
+  按路径 + 文件大小 + 修改时间生成 key；缓存超过 512 MB 时按最旧文件裁剪。
+- 预览解码改走 ImageIO 缩略图路径（2600 px 长边），不再把 45 MP 原图
+  先展开成全分辨率 RGBA；无法生成 ImageIO 缩略图的格式回退 Core Image。
+- 内存上限：预览 3 张、每个照片的 113 外观缩略图最多 3 份、
+  库卡片缩略图最多 200 张；收到系统内存压力时进一步回收非当前照片。
+- 设置面板（浮动面板与系统设置窗口）均提供“清理缓存”，
+  只清理派生图片缓存，不删除编辑记录、收藏、导入 LUT 或原图。
+- 导入 LUT 的 `.bin` 与 `importedLUTs.json` 位于
+  `~/Library/Application Support/OltraFlim`；启动时剔除二进制缺失的注册项。
+- 验证命令：`./script/build_and_run.sh --no-launch`（通过）。
+- **未做 UI/运行时手测**：缓存清理按钮、设置面板布局、增量解码的实际内存
+  曲线需用户手动验收。
+
 ## 4. 已知问题与边界
 
 ### 4.1 需要用户手测确认
@@ -103,6 +147,8 @@ beb075ed779e06ec8ae14fee58473181f7f2dea265c439fac2c24ada0f142ff5  OltraFlim-1.3.
 6. 底部固定栏 Reset/Export/Settings 的位置与点击。
 7. Inspector 三 Tab 横移过渡、曲线拖点。
 8. Compare 分割杆与图像矩形对齐。
+9. 设置面板“清理缓存”后缩略图是否自动重新出现、缓存大小是否归零。
+10. 连续打开多张 45 MP 照片时内存是否稳定（活动监视器观察）。
 
 ### 4.2 设计边界
 
@@ -128,12 +174,12 @@ beb075ed779e06ec8ae14fee58473181f7f2dea265c439fac2c24ada0f142ff5  OltraFlim-1.3.
 
 优先级从高到低：
 
-1. 用户手测 1.3 清单，修 UI 交互与布局问题。
+1. 用户手测 1.4 清单，修 UI 交互与布局问题。
 2. 文件夹扫描移到后台队列，增加 loading/刷新状态。
 3. 主页键盘导航（方向键、回车进入、空格预览）。
 4. 照片评级（1–5 星）与更完整的 Lightroom 集合。
 5. 文件夹文件系统监听（FSEvents）自动刷新。
-6. 大库缩略图虚拟化/缓存上限。
+6. 大库缩略图虚拟化（内存与磁盘上限已完成，虚拟化仍待做）。
 7. 导出预设、批量导出。
 8. 自动化 UI 冒烟测试（需要用户明确授权启动 App）。
 9. 解决 Swift 6 并发警告。
@@ -143,9 +189,9 @@ beb075ed779e06ec8ae14fee58473181f7f2dea265c439fac2c24ada0f142ff5  OltraFlim-1.3.
 
 | 产物 | 路径 | 说明 |
 | --- | --- | --- |
-| App | `dist/OltraFlim.app` | ad-hoc signed，macOS 14+ |
-| DMG | `dist/OltraFlim-1.3.dmg` | 拖入 Applications |
-| ZIP | `dist/OltraFlim-1.3.zip` | 直接解压 |
-| GitHub Release | <https://github.com/Ote65/OltraFlim/releases/tag/v1.3> | 1.3 DMG + ZIP 已上传 |
+| App | `dist/OltraFlim.app` | 1.4 / build 5，ad-hoc signed，macOS 14+ |
+| DMG | `dist/OltraFlim-1.3.dmg` | 上一发布产物（1.4 未重新打包） |
+| ZIP | `dist/OltraFlim-1.3.zip` | 上一发布产物（1.4 未重新打包） |
+| GitHub Release | <https://github.com/Ote65/OltraFlim/releases/tag/v1.3> | 最新已发布版本为 1.3 |
 
 `dist/` 与 `.build/` 不提交到 Git；发布包走 GitHub Releases。

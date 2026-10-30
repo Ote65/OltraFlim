@@ -1,6 +1,6 @@
 # OltraFlim 代码地图
 
-> 版本：1.3 / build 4  
+> 版本：1.4 / build 5  
 > 更新：2026-10-30  
 > 平台：macOS 14+，SwiftUI + AppKit + Metal  
 > 入口：`Sources/OltraFlim/App/OltraFlimApp.swift`
@@ -42,7 +42,7 @@ Oflim/
 │   ├── Sample/         sample_preview.jpg（无照片时的库卡片预览）
 │   ├── catalog.json    45 个胶片 stock / 113 个 look / 默认 stock
 │   ├── Shaders.metal   运行时编译的 Metal 着色器
-│   ├── Info.plist      版本 1.3 / build 4
+│   ├── Info.plist      版本 1.4 / build 5
 │   └── SPEKTRAFILM_LICENSE.txt, LUT_NOTICE.md
 ├── Tools/
 │   ├── build_luts.py   ACES 2.0 + OCIO 离线烘焙 LUT 的工具
@@ -126,6 +126,7 @@ HomeLibraryView photo card
 | `AppModel.swift` | 应用状态与用例：照片库、文件夹、筛选/分组、收藏/颜色标签、编辑持久化、导入/导出、LUT 导入、直方图分析、通透、预览缩略图、测试启动参数、Toast/Alert |
 | `EditStore.swift` | 按标准化文件路径保存 `PhotoEdit`（`edits.json`） |
 | `ImportedLUTStore.swift` | 用户 LUT 二进制 + registry（Application Support/LUTs） |
+| `ThumbnailCache.swift` | 磁盘缩略图缓存（`~/Library/Caches/studio.oltra.oltraflim`）、容量裁剪与存储统计 |
 | `LibraryMetaStore.swift` | 收藏、颜色标签，按路径保存在 `libraryMeta.json`；与显影参数分离 |
 
 ### 4.5 Views
@@ -140,7 +141,8 @@ HomeLibraryView photo card
 | `CurveTabView.swift` | 明暗/R/G/B 曲线编辑器、直方图背景、拖点约束、重置 | 曲线在胶片 LUT 之后、通透之前应用 |
 | `FilmstripView.swift` | 编辑页底部照片条；使用 `collectionPhotos`（当前照片所在文件夹或根库） | |
 | `ExportSheet.swift` | 导出格式/质量/长边 | |
-| `SettingsView.swift` | 语言、导出默认、胶片包、credits、重置收藏；版本 1.3 | |
+| `SettingsView.swift` | 语言、导出默认、胶片包、credits、重置收藏；版本 1.4 | |
+| `SettingsPanel.swift` | 主页右下角浮动设置面板：界面字号、减弱动效、默认导出目录/格式、缩略图缓存统计与清理；含 `SettingsFloatingButton` 与 `SettingsPanelController` | |
 | `ContentView.swift` | 根布局、主页/编辑切换、drop、toast、导出进度、启动错误、导出 sheet | |
 
 ### 4.6 Support
@@ -206,12 +208,15 @@ loosePhotos / folderPhotos
 
 `Adjustments` 是唯一可编码的滑块集合，包括：
 
-- Light：exposure、contrast、highlights、shadows、whites、blacks
+- Light：exposure、contrast、highlights、shadows、whites、blacks、
+  midtones、highlightRolloff
 - Color：temperature、tint、vibrance、saturation、hueShift、colorDensity、
   skin/green/blueSaturation、highlightWarmth、shadowCoolness
 - Detail：clarity、sharpen
-- Film texture：grain、grainSize、grainChroma、grainShadow、halation、
-  halationThreshold、halationRadius、halationWarmth、vignette、fade
+- Film texture：grain、grainSize、grainRoughness、grainChroma、grainShadow、
+  halation、halationThreshold、halationRadius、halationWarmth、bloom、
+  vignette、vignetteMidpoint、vignetteRoundness、vignetteFeather、
+  vignetteCenterX、vignetteCenterY、fade
 - Transparency：tonalTransparency、colorTransparency
 
 `PhotoEdit` 另外包含 `lookID`、`lutID`、`strength`、`lutStrength`、`curves`。
@@ -242,19 +247,19 @@ CanvasMTKView.draw
 1. sRGB → linear
 2. 白平衡（temperature/tint）
 3. 曝光
-4. 对数域 tone shaping（高光/阴影/白/黑、对比、pivot 18% 灰）
+4. 对数域 tone shaping（对比、阴影、黑色、中间调，pivot 18% 灰）
 5. 饱和 + 自然饱和
 6. Clarity / Sharpen（采样原图的高频）
-7. Halation（bloom texture）
+7. Halation / Bloom（同一高光提取，halation 用 RGB，bloom 用 alpha）
 8. Film LUT：ACEScc → AP1 → neutral/film LUT mix；或导入 LUT（Rec.709）
-9. 白点（`whites` 在 LUT 之后的显示空间）
+9. 白点（`whites`）+ 显示空间高光恢复 + 高光过渡
 10. 用户曲线（R/G/B + 明暗 A）
 11. 色彩分级（HSV、肤色/绿色/蓝色、色相、密度、分离色调）
 12. 明暗通透（直方图黑/白点 Levels）
 13. 颜色通透（高光/阴影互补色 delta）
 14. 褪色
-15. 暗角
-16. 颗粒（种子、尺寸、彩噪、阴影颗粒）
+15. 暗角（amount / midpoint / roundness / feather / center）
+16. 颗粒（多八度光谱、密度块、中间调响应、彩粒、暗部）
 17. 抖动
 
 ### 6.3 导出路径
@@ -270,7 +275,12 @@ CanvasMTKView.draw
 
 - `grainSeed` 必须是 **小数值**（当前 `abs(hash)%4096/100`）；直接用
   `hashValue` 会因浮点精度丢失让噪声变成平坦色偏。
-- `whites` 在胶片 LUT **之后**的显示空间处理；放回 pre-LUT 会再次变得几乎无效。
+- 颗粒按**短边归一化**（cycles per short side），不要退回按预览像素计尺寸；
+  否则预览与全分辨率导出的颗粒粗细不一致。
+- `whites` 在胶片 LUT **之后**的显示空间处理；`highlights` 同样必须在
+  LUT 之后，放回 pre-LUT 会被打印 shoulder 压成几乎无效（1.3 实测 4/255）。
+- Bloom 与 halation 共用高光提取纹理：alpha 存**未染色强度**，模糊 pass
+  必须保留 RGBA（曾经只写 RGB、alpha 恒为 1，导致 bloom 阈值/半径失效）。
 - `renderFull` 必须独立生成曲线纹理；不要依赖 `update()` 的副作用。
 - 导入 LUT 上限 50 个、最大 65³；超过会在导入时被拒绝。
 - 分享/发布时不要删除上游 `SPEKTRAFILM_LICENSE.txt` 与 `LUT_NOTICE.md`。

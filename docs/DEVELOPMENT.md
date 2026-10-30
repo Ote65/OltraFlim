@@ -64,7 +64,7 @@ Resources/
   LUTs/                 113 built-in .bin + neutral-0/neutral-15
   Shaders.metal         compiled at runtime by Renderer
   catalog.json          45 stocks / 113 looks / defaultStock
-  Info.plist            version 1.3 / build 4
+  Info.plist            version 1.4 / build 5
   LUT_NOTICE.md
   SPEKTRAFILM_LICENSE.txt
 ```
@@ -159,12 +159,12 @@ and export. Do not run them on a user's desktop without permission.
 rm -rf dist/dmg/OltraFlim.app
 ditto dist/OltraFlim.app dist/dmg/OltraFlim.app
 
-hdiutil create -volname "OltraFlim 1.3" -srcfolder dist/dmg \
-  -ov -format UDZO dist/OltraFlim-1.3.dmg
+hdiutil create -volname "OltraFlim 1.4" -srcfolder dist/dmg \
+  -ov -format UDZO dist/OltraFlim-1.4.dmg
 ditto -c -k --sequesterRsrc --keepParent dist/OltraFlim.app \
-  dist/OltraFlim-1.3.zip
+  dist/OltraFlim-1.4.zip
 
-shasum -a 256 dist/OltraFlim-1.3.dmg dist/OltraFlim-1.3.zip
+shasum -a 256 dist/OltraFlim-1.4.dmg dist/OltraFlim-1.4.zip
 ```
 
 - `dist/` is ignored by Git; binaries live in GitHub Releases.

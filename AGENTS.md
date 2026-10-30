@@ -12,7 +12,7 @@
 
 - Product: **OltraFlim** — native macOS film-simulation darkroom.
 - Stack: SwiftUI + AppKit + Metal, macOS 14+.
-- Version: **1.3 / build 4**.
+- Version: **1.4 / build 5**.
 - Repo: `https://github.com/Ote65/OltraFlim`.
 - License: application code is **PolyForm Noncommercial 1.0.0**; LUT/profile
   derivatives remain **CC BY-SA 4.0**. Never relicense upstream assets.
@@ -82,6 +82,10 @@ swiftc -parse-as-library -target "$(uname -m)-apple-macosx14.0" -sdk "$SDK" \
 
 - 遵循现有 `DS` token（`Support/DesignSystem.swift`）；不要引入新的颜色/
   圆角/动画常量，除非复用现有 token。
+- **UI 中严禁出现任何形式的滚动条**（除非用户明确要求）：SwiftUI 滚动容器
+  一律 `.scrollIndicators(.never)`；AppKit `NSScrollView` 必须
+  `hasHorizontalScroller = false`、`hasVerticalScroller = false`。
+  需要提示还有内容时用渐隐遮罩、悬停位移或少量露出的内容边缘，不要画滚动条。
 - 所有用户可见文案用 `T("中文","English")`；默认中文。
 - 不添加第三方依赖；不引入 Electron/WebView/Python 运行时。
 - Metal uniform 布局必须与 `Shaders.metal` 的 `Uniforms` **字段顺序一致**；
