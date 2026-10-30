@@ -1,6 +1,6 @@
-# OltraFlim
+# Oltrafilm
 
-**OltraFlim 是一个原生 macOS 胶片模拟暗房。** 以照片库为首页，导入照片或
+**Oltrafilm 是一个原生 macOS 胶片模拟暗房。** 以照片库为首页，导入照片或
 整个文件夹，点击照片进入显影；选胶片、调光线与色彩、加颗粒与光晕、用原图
 分割杆对比，最后导出全分辨率照片。编辑、收藏、颜色标签和文件夹索引按路径
 记忆，文件始终留在原位置。
@@ -28,7 +28,7 @@ files.
 | [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) | license scope and upstream attribution |
 | [`CHANGELOG.md`](CHANGELOG.md) | release history |
 
-OltraFlim is a SwiftUI + Metal application. It carries a display-ready pack of
+Oltrafilm is a SwiftUI + Metal application. It carries a display-ready pack of
 **113 film LUTs** derived from the open-source
 [spektrafilm](https://github.com/andreavolpato/spektrafilm) project by Andrea
 Volpato, using the **ACES 2.0 SDR 100-nit Rec.709** output transform from
@@ -229,7 +229,7 @@ SpektraFilm +1.5 EV default, and groups the 113 files into 45 stocks.
 - LUT derivatives: CC BY-SA 4.0. See `Resources/LUT_NOTICE.md` and
   `Resources/SPEKTRAFILM_LICENSE.txt`.
 - ACES 2.0 output transform: Academy Color Encoding System / OpenColorIO 2.6.
-- The OltraFlim Swift/Metal engine is original to this project; no spektrafilm
+- The Oltrafilm Swift/Metal engine is original to this project; no spektrafilm
   source code is copied into the app.
 - The reference preview is derived from a DNG supplied by the project owner;
   the DNG itself is not shipped.
@@ -291,7 +291,7 @@ remain controlled by the operating system.
 
 ## License
 
-The original OltraFlim application code and documentation are licensed under
+The original Oltrafilm application code and documentation are licensed under
 **PolyForm Noncommercial 1.0.0** (`LICENSE`): you may use, modify and share the
 code for noncommercial purposes only. This is a source-available, noncommercial
 license, not an OSI-approved open-source license.
@@ -300,7 +300,7 @@ Bundled film LUTs and film-profile derivatives are **not** relicensed by that
 file; they remain **CC BY-SA 4.0** under the upstream spektrafilm notice. See
 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) and
 [`Resources/SPEKTRAFILM_LICENSE.txt`](Resources/SPEKTRAFILM_LICENSE.txt) before
-using or redistributing those assets. The OLTRAFLIM name/icon are brand material
+using or redistributing those assets. The OLTRAFILM name/icon are brand material
 and are not licensed for a different product.
 
 Film modelling powered by spektrafilm by Andrea Volpato. LUT derivatives

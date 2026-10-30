@@ -15,7 +15,7 @@ struct SettingsView: View {
                         .frame(width: 28, height: 28)
                 }
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("OltraFlim")
+                    Text("Oltrafilm")
                         .font(DS.font(15, .medium))
                         .foregroundStyle(DS.textPrimary)
                     Text(T("macOS 胶片模拟暗房", "Film simulation darkroom for macOS"))
@@ -209,7 +209,7 @@ private struct SettingsWindowTitle: NSViewRepresentable {
     func makeNSView(context: Context) -> NSView {
         let view = NSView()
         DispatchQueue.main.async {
-            view.window?.title = T("OltraFlim 设置", "OltraFlim Settings")
+            view.window?.title = T("Oltrafilm 设置", "Oltrafilm Settings")
             view.window?.appearance = NSAppearance(named: .darkAqua)
             view.window?.makeFirstResponder(nil)
         }
@@ -218,7 +218,7 @@ private struct SettingsWindowTitle: NSViewRepresentable {
 
     func updateNSView(_ nsView: NSView, context: Context) {
         DispatchQueue.main.async {
-            nsView.window?.title = T("OltraFlim 设置", "OltraFlim Settings")
+            nsView.window?.title = T("Oltrafilm 设置", "Oltrafilm Settings")
             nsView.window?.makeFirstResponder(nil)
         }
     }

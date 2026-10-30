@@ -45,7 +45,7 @@ struct SettingsPanel: View {
                 .tracking(1.7)
                 .foregroundStyle(DS.textSecondary)
             Spacer(minLength: 8)
-            Text("OltraFlim 1.4")
+            Text("Oltrafilm 1.4")
                 .font(DS.mono(8.5))
                 .foregroundStyle(DS.textQuaternary)
             Button(action: onClose) {

@@ -508,7 +508,7 @@ struct EngineErrorView: View {
             Text(T("胶片引擎无法启动。", "The film engine could not start."))
                 .font(DS.font(13, .medium))
                 .foregroundStyle(DS.textPrimary)
-            Text(T("OltraFlim 需要支持 Metal 的 Mac，并运行 macOS 14 或更新版本。", "OltraFlim needs a Metal-capable Mac running macOS 14 or newer."))
+            Text(T("Oltrafilm 需要支持 Metal 的 Mac，并运行 macOS 14 或更新版本。", "Oltrafilm needs a Metal-capable Mac running macOS 14 or newer."))
                 .font(DS.label(10))
                 .foregroundStyle(DS.textSecondary)
         }

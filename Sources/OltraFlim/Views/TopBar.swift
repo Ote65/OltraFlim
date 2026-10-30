@@ -105,12 +105,12 @@ struct TopBar: View {
                     .interpolation(.high)
                     .frame(width: 17, height: 17)
             }
-            Text("OLTRAFLIM")
+            Text("OLTRAFILM")
                 .font(DS.font(9, .semibold))
                 .tracking(1.5)
                 .foregroundStyle(DS.textSecondary.opacity(0.72))
         }
-        .help("OltraFlim")
+        .help("Oltrafilm")
     }
 
     @ViewBuilder
