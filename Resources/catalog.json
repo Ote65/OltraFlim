@@ -1,0 +1,3714 @@
+{
+  "version": 1,
+  "generated": "2026-10-29",
+  "lutSize": 33,
+  "defaultStock": "kodak-portra-400",
+  "attribution": "Film modeling powered by spektrafilm by Andrea Volpato. LUT pack derived from the Alcedo LUT export (CC BY-SA 4.0 / commercial-use-no-resale). ACES 2.0 display transform via OpenColorIO.",
+  "stocks": [
+    {
+      "id": "kodak-portra-400",
+      "brand": "Kodak",
+      "name": "Portra 400",
+      "type": "negative",
+      "iso": 400,
+      "push": 0,
+      "defaultLook": "spk-kodak-portra-400-kodak-portra-endura",
+      "swatch": [
+        "#C2DEED",
+        "#E4D2C7",
+        "#C2D4AB"
+      ],
+      "luminance": 0.8303267038370645,
+      "variants": [
+        {
+          "id": "spk-kodak-portra-400-kodak-portra-endura",
+          "label": "Endura",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Professional Portra Endura",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.942 couplers=0.66 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-portra-400-kodak-portra-endura.bin"
+        },
+        {
+          "id": "spk-kodak-portra-400-fujifilm-crystal-archive-typeii",
+          "label": "Crystal Archive",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Crystal Archive Type II",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.895 couplers=0.69 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-portra-400-fujifilm-crystal-archive-typeii.bin"
+        },
+        {
+          "id": "spc-kodak-portra-400-kodak-portra-endura-paper-aces2-sdr",
+          "label": "Endura · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Portra Endura Paper",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-portra-400-kodak-portra-endura-paper-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-portra-400-adx-printdensity-gammacal",
+          "label": "ADX density",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx-printdensity-gammacal",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-portra-400-adx-printdensity-gammacal.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-portra-160",
+      "brand": "Kodak",
+      "name": "Portra 160",
+      "type": "negative",
+      "iso": 160,
+      "push": 0,
+      "defaultLook": "spk-kodak-portra-160-kodak-portra-endura",
+      "swatch": [
+        "#C3DEEC",
+        "#E2D2C6",
+        "#C6D2AA"
+      ],
+      "luminance": 0.8298246335399098,
+      "variants": [
+        {
+          "id": "spk-kodak-portra-160-kodak-portra-endura",
+          "label": "Endura",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Professional Portra Endura",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.936 couplers=0.715 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-portra-160-kodak-portra-endura.bin"
+        },
+        {
+          "id": "spk-kodak-portra-160-fujifilm-crystal-archive-typeii",
+          "label": "Crystal Archive",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Crystal Archive Type II",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.892 couplers=0.736 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-portra-160-fujifilm-crystal-archive-typeii.bin"
+        },
+        {
+          "id": "spc-kodak-portra-160-kodak-portra-endura-paper-aces2-sdr",
+          "label": "Endura · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Portra Endura Paper",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-portra-160-kodak-portra-endura-paper-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-portra-160-adx-printdensity-gammacal",
+          "label": "ADX density",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx-printdensity-gammacal",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-portra-160-adx-printdensity-gammacal.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-gold-200",
+      "brand": "Kodak",
+      "name": "Gold 200",
+      "type": "negative",
+      "iso": 200,
+      "push": 0,
+      "defaultLook": "spk-kodak-gold-200-kodak-portra-endura",
+      "swatch": [
+        "#C1DBEB",
+        "#E2CFC3",
+        "#B7D3AD"
+      ],
+      "luminance": 0.820216815514093,
+      "variants": [
+        {
+          "id": "spk-kodak-gold-200-kodak-portra-endura",
+          "label": "Endura",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Professional Portra Endura",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.92 couplers=0.863 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-gold-200-kodak-portra-endura.bin"
+        },
+        {
+          "id": "spk-kodak-gold-200-fujifilm-crystal-archive-typeii",
+          "label": "Crystal Archive",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Crystal Archive Type II",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.876 couplers=0.878 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-gold-200-fujifilm-crystal-archive-typeii.bin"
+        },
+        {
+          "id": "spc-kodak-gold-200-kodak-portra-endura-paper-aces2-sdr",
+          "label": "Endura · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Portra Endura Paper",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-gold-200-kodak-portra-endura-paper-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-gold-200-adx-printdensity-gammacal",
+          "label": "ADX density",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx-printdensity-gammacal",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-gold-200-adx-printdensity-gammacal.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-portra-800",
+      "brand": "Kodak",
+      "name": "Portra 800",
+      "type": "negative",
+      "iso": 800,
+      "push": 0,
+      "defaultLook": "spk-kodak-portra-800-kodak-portra-endura",
+      "swatch": [
+        "#BFDAEB",
+        "#E2D1C5",
+        "#BBD2AE"
+      ],
+      "luminance": 0.8203546657036066,
+      "variants": [
+        {
+          "id": "spk-kodak-portra-800-kodak-portra-endura",
+          "label": "Endura",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Professional Portra Endura",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.963 couplers=0.675 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-portra-800-kodak-portra-endura.bin"
+        },
+        {
+          "id": "spk-kodak-portra-800-fujifilm-crystal-archive-typeii",
+          "label": "Crystal Archive",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Crystal Archive Type II",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.914 couplers=0.7 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-portra-800-fujifilm-crystal-archive-typeii.bin"
+        },
+        {
+          "id": "spc-kodak-portra-800-kodak-portra-endura-paper-aces2-sdr",
+          "label": "Endura · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Portra Endura Paper",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-portra-800-kodak-portra-endura-paper-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-portra-800-adx-printdensity-gammacal",
+          "label": "ADX density",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx-printdensity-gammacal",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-portra-800-adx-printdensity-gammacal.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-ultramax-400",
+      "brand": "Kodak",
+      "name": "Ultramax 400",
+      "type": "negative",
+      "iso": 400,
+      "push": 0,
+      "defaultLook": "spk-kodak-ultramax-400-kodak-portra-endura",
+      "swatch": [
+        "#BDDAEC",
+        "#E3D0C3",
+        "#BAD4AA"
+      ],
+      "luminance": 0.8198784784121534,
+      "variants": [
+        {
+          "id": "spk-kodak-ultramax-400-kodak-portra-endura",
+          "label": "Endura",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Professional Portra Endura",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.95 couplers=0.842 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-ultramax-400-kodak-portra-endura.bin"
+        },
+        {
+          "id": "spk-kodak-ultramax-400-fujifilm-crystal-archive-typeii",
+          "label": "Crystal Archive",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Crystal Archive Type II",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.901 couplers=0.863 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-ultramax-400-fujifilm-crystal-archive-typeii.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-ektar-100",
+      "brand": "Kodak",
+      "name": "Ektar 100",
+      "type": "negative",
+      "iso": 100,
+      "push": 0,
+      "defaultLook": "spk-kodak-ektar-100-kodak-portra-endura",
+      "swatch": [
+        "#B9D9EA",
+        "#E0CCBF",
+        "#BBD0A4"
+      ],
+      "luminance": 0.8092622880344527,
+      "variants": [
+        {
+          "id": "spk-kodak-ektar-100-kodak-portra-endura",
+          "label": "Endura",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Professional Portra Endura",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.879 couplers=0.863 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-ektar-100-kodak-portra-endura.bin"
+        },
+        {
+          "id": "spk-kodak-ektar-100-fujifilm-crystal-archive-typeii",
+          "label": "Crystal Archive",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Crystal Archive Type II",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.838 couplers=0.873 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-ektar-100-fujifilm-crystal-archive-typeii.bin"
+        },
+        {
+          "id": "spc-kodak-ektar-100-kodak-portra-endura-paper-aces2-sdr",
+          "label": "Endura · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Portra Endura Paper",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-ektar-100-kodak-portra-endura-paper-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-ektar-100-adx-printdensity-gammacal",
+          "label": "ADX density",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx-printdensity-gammacal",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-ektar-100-adx-printdensity-gammacal.bin"
+        }
+      ]
+    },
+    {
+      "id": "fujifilm-c200",
+      "brand": "Fujifilm",
+      "name": "C200",
+      "type": "negative",
+      "iso": 200,
+      "push": 0,
+      "defaultLook": "spk-fujifilm-c200-fujifilm-crystal-archive-typeii",
+      "swatch": [
+        "#BED7E9",
+        "#DFD0C4",
+        "#BFD1AF"
+      ],
+      "luminance": 0.8160073757475458,
+      "variants": [
+        {
+          "id": "spk-fujifilm-c200-fujifilm-crystal-archive-typeii",
+          "label": "Crystal Archive",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Crystal Archive Type II",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.767 couplers=0.685 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-fujifilm-c200-fujifilm-crystal-archive-typeii.bin"
+        },
+        {
+          "id": "spk-fujifilm-c200-kodak-portra-endura",
+          "label": "Endura",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Professional Portra Endura",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.799 couplers=0.644 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-fujifilm-c200-kodak-portra-endura.bin"
+        },
+        {
+          "id": "spc-fujifilm-c200-kodak-portra-endura-paper-aces2-sdr",
+          "label": "Endura · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Portra Endura Paper",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-fujifilm-c200-kodak-portra-endura-paper-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-fujifilm-c200-adx-printdensity-gammacal",
+          "label": "ADX density",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx-printdensity-gammacal",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-fujifilm-c200-adx-printdensity-gammacal.bin"
+        }
+      ]
+    },
+    {
+      "id": "fujifilm-pro-400h",
+      "brand": "Fujifilm",
+      "name": "Pro 400H",
+      "type": "negative",
+      "iso": 400,
+      "push": 0,
+      "defaultLook": "spk-fujifilm-pro-400h-fujifilm-crystal-archive-typeii",
+      "swatch": [
+        "#C1D8E9",
+        "#DFD1C6",
+        "#C2D1AF"
+      ],
+      "luminance": 0.8188951632814782,
+      "variants": [
+        {
+          "id": "spk-fujifilm-pro-400h-fujifilm-crystal-archive-typeii",
+          "label": "Crystal Archive",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Crystal Archive Type II",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.881 couplers=0.563 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-fujifilm-pro-400h-fujifilm-crystal-archive-typeii.bin"
+        },
+        {
+          "id": "spk-fujifilm-pro-400h-kodak-portra-endura",
+          "label": "Endura",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Professional Portra Endura",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.928 couplers=0.522 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-fujifilm-pro-400h-kodak-portra-endura.bin"
+        },
+        {
+          "id": "spc-fujifilm-pro-400h-kodak-portra-endura-paper-aces2-sdr",
+          "label": "Endura · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Portra Endura Paper",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-fujifilm-pro-400h-kodak-portra-endura-paper-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-fujifilm-pro-400h-adx-printdensity-gammacal",
+          "label": "ADX density",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx-printdensity-gammacal",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-fujifilm-pro-400h-adx-printdensity-gammacal.bin"
+        }
+      ]
+    },
+    {
+      "id": "fujifilm-superia-x-tra-400",
+      "brand": "Fujifilm",
+      "name": "Superia X-Tra 400",
+      "type": "negative",
+      "iso": 400,
+      "push": 0,
+      "defaultLook": "spk-fujifilm-xtra-400-fujifilm-crystal-archive-typeii",
+      "swatch": [
+        "#BED6E9",
+        "#DECFC3",
+        "#C1D1AE"
+      ],
+      "luminance": 0.8149418133993623,
+      "variants": [
+        {
+          "id": "spk-fujifilm-xtra-400-fujifilm-crystal-archive-typeii",
+          "label": "Crystal Archive",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Crystal Archive Type II",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.717 couplers=0.68 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-fujifilm-xtra-400-fujifilm-crystal-archive-typeii.bin"
+        },
+        {
+          "id": "spk-fujifilm-xtra-400-kodak-portra-endura",
+          "label": "Endura",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Professional Portra Endura",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.75 couplers=0.619 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-fujifilm-xtra-400-kodak-portra-endura.bin"
+        },
+        {
+          "id": "spc-fujifilm-superia-x-tra-400-kodak-portra-endura-paper-aces2-sdr",
+          "label": "Endura · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Portra Endura Paper",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-fujifilm-superia-x-tra-400-kodak-portra-endura-paper-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-fujifilm-superia-x-tra-400-adx-printdensity-gammacal",
+          "label": "ADX density",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx-printdensity-gammacal",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-fujifilm-superia-x-tra-400-adx-printdensity-gammacal.bin"
+        }
+      ]
+    },
+    {
+      "id": "fujifilm-pro-160c",
+      "brand": "Fujifilm",
+      "name": "Pro 160C",
+      "type": "negative",
+      "iso": 160,
+      "push": 0,
+      "defaultLook": "spc-fujifilm-pro-160c-kodak-portra-endura-paper-aces2-sdr",
+      "swatch": [
+        "#93B1C8",
+        "#CDB19B",
+        "#7FA57A"
+      ],
+      "luminance": 0.662981364323472,
+      "variants": [
+        {
+          "id": "spc-fujifilm-pro-160c-kodak-portra-endura-paper-aces2-sdr",
+          "label": "Endura · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Portra Endura Paper",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-fujifilm-pro-160c-kodak-portra-endura-paper-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-fujifilm-pro-160c-adx-printdensity-gammacal",
+          "label": "ADX density",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx-printdensity-gammacal",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-fujifilm-pro-160c-adx-printdensity-gammacal.bin"
+        }
+      ]
+    },
+    {
+      "id": "fujifilm-pro-160s",
+      "brand": "Fujifilm",
+      "name": "Pro 160S",
+      "type": "negative",
+      "iso": 160,
+      "push": 0,
+      "defaultLook": "spc-fujifilm-pro-160s-kodak-portra-endura-paper-aces2-sdr",
+      "swatch": [
+        "#90A9C0",
+        "#C3A896",
+        "#7F9E7A"
+      ],
+      "luminance": 0.6370680295651712,
+      "variants": [
+        {
+          "id": "spc-fujifilm-pro-160s-kodak-portra-endura-paper-aces2-sdr",
+          "label": "Endura · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Portra Endura Paper",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-fujifilm-pro-160s-kodak-portra-endura-paper-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-fujifilm-pro-160s-adx-printdensity-gammacal",
+          "label": "ADX density",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx-printdensity-gammacal",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-fujifilm-pro-160s-adx-printdensity-gammacal.bin"
+        }
+      ]
+    },
+    {
+      "id": "fujifilm-superia-reala",
+      "brand": "Fujifilm",
+      "name": "Superia Reala",
+      "type": "negative",
+      "iso": null,
+      "push": 0,
+      "defaultLook": "spc-fujifilm-superia-reala-kodak-portra-endura-paper-aces2-sdr",
+      "swatch": [
+        "#95BAD0",
+        "#CBAE9D",
+        "#7CA377"
+      ],
+      "luminance": 0.6669266604032722,
+      "variants": [
+        {
+          "id": "spc-fujifilm-superia-reala-kodak-portra-endura-paper-aces2-sdr",
+          "label": "Endura · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Portra Endura Paper",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-fujifilm-superia-reala-kodak-portra-endura-paper-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-fujifilm-superia-reala-adx-printdensity-gammacal",
+          "label": "ADX density",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx-printdensity-gammacal",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-fujifilm-superia-reala-adx-printdensity-gammacal.bin"
+        }
+      ]
+    },
+    {
+      "id": "fujifilm-natura-1600",
+      "brand": "Fujifilm",
+      "name": "Natura 1600",
+      "type": "negative",
+      "iso": 1600,
+      "push": 0,
+      "defaultLook": "spc-fujifilm-natura-1600-kodak-portra-endura-paper-aces2-sdr",
+      "swatch": [
+        "#96BAD6",
+        "#D1BAA6",
+        "#76A77C"
+      ],
+      "luminance": 0.6838571610759954,
+      "variants": [
+        {
+          "id": "spc-fujifilm-natura-1600-kodak-portra-endura-paper-aces2-sdr",
+          "label": "Endura · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Portra Endura Paper",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-fujifilm-natura-1600-kodak-portra-endura-paper-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-fujifilm-natura-1600-adx-printdensity-gammacal",
+          "label": "ADX density",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx-printdensity-gammacal",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-fujifilm-natura-1600-adx-printdensity-gammacal.bin"
+        }
+      ]
+    },
+    {
+      "id": "agfa-vista-100",
+      "brand": "Agfa",
+      "name": "Vista 100",
+      "type": "negative",
+      "iso": 100,
+      "push": 0,
+      "defaultLook": "spc-agfa-vista-100-kodak-portra-endura-paper-aces2-sdr",
+      "swatch": [
+        "#90B4D0",
+        "#C8B0A1",
+        "#79A175"
+      ],
+      "luminance": 0.658441355867593,
+      "variants": [
+        {
+          "id": "spc-agfa-vista-100-kodak-portra-endura-paper-aces2-sdr",
+          "label": "Endura · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Portra Endura Paper",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-agfa-vista-100-kodak-portra-endura-paper-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-agfa-vista-100-adx-printdensity-gammacal",
+          "label": "ADX density",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx-printdensity-gammacal",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-agfa-vista-100-adx-printdensity-gammacal.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-portra-800-push-1",
+      "brand": "Kodak",
+      "name": "Portra 800 · Push 1",
+      "type": "negative",
+      "iso": 800,
+      "push": 1,
+      "defaultLook": "spk-kodak-portra-800-push1-kodak-portra-endura",
+      "swatch": [
+        "#C1DBEB",
+        "#E3D2C7",
+        "#BDD3B1"
+      ],
+      "luminance": 0.825526336449269,
+      "variants": [
+        {
+          "id": "spk-kodak-portra-800-push1-kodak-portra-endura",
+          "label": "Endura",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Professional Portra Endura",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.849 couplers=0.533 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-portra-800-push1-kodak-portra-endura.bin"
+        },
+        {
+          "id": "spk-kodak-portra-800-push1-fujifilm-crystal-archive-typeii",
+          "label": "Crystal Archive",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Crystal Archive Type II",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.805 couplers=0.558 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-portra-800-push1-fujifilm-crystal-archive-typeii.bin"
+        },
+        {
+          "id": "spc-kodak-portra-800-1600-kodak-portra-endura-paper-aces2-sdr",
+          "label": "Endura · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Portra Endura Paper",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-portra-800-1600-kodak-portra-endura-paper-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-portra-800-1600-adx-printdensity-gammacal",
+          "label": "ADX density",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx-printdensity-gammacal",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-portra-800-1600-adx-printdensity-gammacal.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-portra-800-push-2",
+      "brand": "Kodak",
+      "name": "Portra 800 · Push 2",
+      "type": "negative",
+      "iso": 800,
+      "push": 2,
+      "defaultLook": "spk-kodak-portra-800-push2-kodak-portra-endura",
+      "swatch": [
+        "#C4DCEB",
+        "#E4D4CA",
+        "#BFD4B4"
+      ],
+      "luminance": 0.8322014782955082,
+      "variants": [
+        {
+          "id": "spk-kodak-portra-800-push2-kodak-portra-endura",
+          "label": "Endura",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Professional Portra Endura",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.788 couplers=0.421 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-portra-800-push2-kodak-portra-endura.bin"
+        },
+        {
+          "id": "spk-kodak-portra-800-push2-fujifilm-crystal-archive-typeii",
+          "label": "Crystal Archive",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Crystal Archive Type II",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.75 couplers=0.446 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-portra-800-push2-fujifilm-crystal-archive-typeii.bin"
+        },
+        {
+          "id": "spc-kodak-portra-800-3200-kodak-portra-endura-paper-aces2-sdr",
+          "label": "Endura · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Portra Endura Paper",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-portra-800-3200-kodak-portra-endura-paper-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-portra-800-3200-adx-printdensity-gammacal",
+          "label": "ADX density",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx-printdensity-gammacal",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-portra-800-3200-adx-printdensity-gammacal.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-ultramax-500",
+      "brand": "Kodak",
+      "name": "Ultramax 500",
+      "type": "negative",
+      "iso": 500,
+      "push": 0,
+      "defaultLook": "spc-kodak-ultramax-500-kodak-portra-endura-paper-aces2-sdr",
+      "swatch": [
+        "#91ADC9",
+        "#BDA79C",
+        "#6A9875"
+      ],
+      "luminance": 0.6272063839018401,
+      "variants": [
+        {
+          "id": "spc-kodak-ultramax-500-kodak-portra-endura-paper-aces2-sdr",
+          "label": "Endura · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Portra Endura Paper",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-ultramax-500-kodak-portra-endura-paper-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-ultramax-500-adx-printdensity-gammacal",
+          "label": "ADX density",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx-printdensity-gammacal",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-ultramax-500-adx-printdensity-gammacal.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-vericolor-iii",
+      "brand": "Kodak",
+      "name": "Vericolor III",
+      "type": "negative",
+      "iso": null,
+      "push": 0,
+      "defaultLook": "spc-kodak-vericolor-iii-kodak-portra-endura-paper-aces2-sdr",
+      "swatch": [
+        "#90B1D0",
+        "#C5B2A1",
+        "#659E75"
+      ],
+      "luminance": 0.6486839778856447,
+      "variants": [
+        {
+          "id": "spc-kodak-vericolor-iii-kodak-portra-endura-paper-aces2-sdr",
+          "label": "Endura · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Portra Endura Paper",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-vericolor-iii-kodak-portra-endura-paper-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-vericolor-iii-adx-printdensity-gammacal",
+          "label": "ADX density",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx-printdensity-gammacal",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-vericolor-iii-adx-printdensity-gammacal.bin"
+        }
+      ]
+    },
+    {
+      "id": "fujifilm-velvia-50",
+      "brand": "Fujifilm",
+      "name": "Velvia 50",
+      "type": "slide",
+      "iso": 50,
+      "push": 0,
+      "defaultLook": "spc-fujifilm-velvia-50-aces2-sdr",
+      "swatch": [
+        "#8197B5",
+        "#AD9785",
+        "#618F5F"
+      ],
+      "luminance": 0.5649403915208632,
+      "variants": [
+        {
+          "id": "spc-fujifilm-velvia-50-aces2-sdr",
+          "label": "Slide",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-fujifilm-velvia-50-aces2-sdr.bin"
+        }
+      ]
+    },
+    {
+      "id": "fujifilm-velvia-100",
+      "brand": "Fujifilm",
+      "name": "Velvia 100",
+      "type": "slide",
+      "iso": 100,
+      "push": 0,
+      "defaultLook": "spk-fujifilm-velvia-100",
+      "swatch": [
+        "#DBEAF6",
+        "#F0E9DD",
+        "#CEE8C0"
+      ],
+      "luminance": 0.9003611292920864,
+      "variants": [
+        {
+          "id": "spk-fujifilm-velvia-100",
+          "label": "Slide",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": null,
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=1 couplers=0.949 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-fujifilm-velvia-100.bin"
+        }
+      ]
+    },
+    {
+      "id": "fujifilm-provia-100f",
+      "brand": "Fujifilm",
+      "name": "Provia 100F",
+      "type": "slide",
+      "iso": 100,
+      "push": 0,
+      "defaultLook": "spk-fujifilm-provia-100f",
+      "swatch": [
+        "#D0E2ED",
+        "#EBE2D7",
+        "#C3DCBD"
+      ],
+      "luminance": 0.8659621876457212,
+      "variants": [
+        {
+          "id": "spk-fujifilm-provia-100f",
+          "label": "Slide",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": null,
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=1 couplers=1.218 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-fujifilm-provia-100f.bin"
+        },
+        {
+          "id": "spc-fujifilm-provia-100f-aces2-sdr",
+          "label": "Slide",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-fujifilm-provia-100f-aces2-sdr.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-ektachrome-100",
+      "brand": "Kodak",
+      "name": "Ektachrome 100",
+      "type": "slide",
+      "iso": 100,
+      "push": 0,
+      "defaultLook": "spk-kodak-ektachrome-100",
+      "swatch": [
+        "#C6DAEB",
+        "#E3D8CB",
+        "#C0D6AF"
+      ],
+      "luminance": 0.8349693908620859,
+      "variants": [
+        {
+          "id": "spk-kodak-ektachrome-100",
+          "label": "Slide",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": null,
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=1 couplers=1.33 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-ektachrome-100.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-ektachrome-100d",
+      "brand": "Kodak",
+      "name": "Ektachrome 100D",
+      "type": "slide",
+      "iso": 100,
+      "push": 0,
+      "defaultLook": "spc-kodak-ektachrome-100d-aces2-sdr",
+      "swatch": [
+        "#7B8897",
+        "#998777",
+        "#647F58"
+      ],
+      "luminance": 0.5097741645382041,
+      "variants": [
+        {
+          "id": "spc-kodak-ektachrome-100d-aces2-sdr",
+          "label": "Slide",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-ektachrome-100d-aces2-sdr.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-kodachrome-64",
+      "brand": "Kodak",
+      "name": "Kodachrome 64",
+      "type": "slide",
+      "iso": 64,
+      "push": 0,
+      "defaultLook": "spk-kodak-kodachrome-64",
+      "swatch": [
+        "#C5DDE9",
+        "#E3D5CC",
+        "#BBDAB6"
+      ],
+      "luminance": 0.8380354365231292,
+      "variants": [
+        {
+          "id": "spk-kodak-kodachrome-64",
+          "label": "Slide",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": null,
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=1 couplers=1.304 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-kodachrome-64.bin"
+        },
+        {
+          "id": "spc-kodak-kodachrome-64-aces2-sdr",
+          "label": "Slide",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-kodachrome-64-aces2-sdr.bin"
+        }
+      ]
+    },
+    {
+      "id": "fujifilm-instax-color",
+      "brand": "Fujifilm",
+      "name": "Instax color",
+      "type": "instant",
+      "iso": null,
+      "push": 0,
+      "defaultLook": "spc-fujifilm-instax-color-aces2-sdr",
+      "swatch": [
+        "#A5B9C3",
+        "#C1BEB4",
+        "#8EA99A"
+      ],
+      "luminance": 0.6975374749847961,
+      "variants": [
+        {
+          "id": "spc-fujifilm-instax-color-aces2-sdr",
+          "label": "Print",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-fujifilm-instax-color-aces2-sdr.bin"
+        }
+      ]
+    },
+    {
+      "id": "fujifilm-fp-100c",
+      "brand": "Fujifilm",
+      "name": "FP-100C",
+      "type": "instant",
+      "iso": null,
+      "push": 0,
+      "defaultLook": "spc-fujifilm-fp-100c-aces2-sdr",
+      "swatch": [
+        "#B2CCD9",
+        "#CFCCC1",
+        "#A2C1A2"
+      ],
+      "luminance": 0.7679036845030581,
+      "variants": [
+        {
+          "id": "spc-fujifilm-fp-100c-aces2-sdr",
+          "label": "Print",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-fujifilm-fp-100c-aces2-sdr.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-aerochrome-iii-infrared-film-1443",
+      "brand": "Kodak",
+      "name": "Aerochrome III Infrared Film 1443",
+      "type": "special",
+      "iso": null,
+      "push": 0,
+      "defaultLook": "spc-kodak-aerochrome-iii-infrared-film-1443-aces2-sdr",
+      "swatch": [
+        "#F6A884",
+        "#D5A57E",
+        "#5B6170"
+      ],
+      "luminance": 0.5904226650433112,
+      "variants": [
+        {
+          "id": "spc-kodak-aerochrome-iii-infrared-film-1443-aces2-sdr",
+          "label": "Infrared",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-aerochrome-iii-infrared-film-1443-aces2-sdr.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-5247",
+      "brand": "Kodak",
+      "name": "5247",
+      "type": "cinema",
+      "iso": null,
+      "push": 0,
+      "defaultLook": "spc-kodak-5247-kodak-vision-2383-aces2-sdr",
+      "swatch": [
+        "#8FA8C5",
+        "#BCA39C",
+        "#608E5F"
+      ],
+      "luminance": 0.6023889035898411,
+      "variants": [
+        {
+          "id": "spc-kodak-5247-kodak-vision-2383-aces2-sdr",
+          "label": "Vision 2383 · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Vision 2383",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-5247-kodak-vision-2383-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-5247-adx",
+          "label": "ADX",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-5247-adx.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-5247-ii",
+      "brand": "Kodak",
+      "name": "5247 II",
+      "type": "cinema",
+      "iso": null,
+      "push": 0,
+      "defaultLook": "spc-kodak-5247-ii-kodak-vision-2383-aces2-sdr",
+      "swatch": [
+        "#86A9BA",
+        "#B1A89B",
+        "#639773"
+      ],
+      "luminance": 0.6127890357480658,
+      "variants": [
+        {
+          "id": "spc-kodak-5247-ii-kodak-vision-2383-aces2-sdr",
+          "label": "Vision 2383 · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Vision 2383",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-5247-ii-kodak-vision-2383-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-5247-ii-adx",
+          "label": "ADX",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-5247-ii-adx.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-5247-ii-alt",
+      "brand": "Kodak",
+      "name": "5247 II Alt",
+      "type": "cinema",
+      "iso": null,
+      "push": 0,
+      "defaultLook": "spc-kodak-5247-ii-alt-kodak-vision-2383-aces2-sdr",
+      "swatch": [
+        "#91A4B9",
+        "#B8AB9A",
+        "#5F9471"
+      ],
+      "luminance": 0.6114709950494223,
+      "variants": [
+        {
+          "id": "spc-kodak-5247-ii-alt-kodak-vision-2383-aces2-sdr",
+          "label": "Vision 2383 · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Vision 2383",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-5247-ii-alt-kodak-vision-2383-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-5247-ii-alt-adx",
+          "label": "ADX",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-5247-ii-alt-adx.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-5248",
+      "brand": "Kodak",
+      "name": "5248",
+      "type": "cinema",
+      "iso": null,
+      "push": 0,
+      "defaultLook": "spc-kodak-5248-kodak-vision-2383-aces2-sdr",
+      "swatch": [
+        "#92B3C5",
+        "#C3AC9C",
+        "#5F9A6F"
+      ],
+      "luminance": 0.6366242039215398,
+      "variants": [
+        {
+          "id": "spc-kodak-5248-kodak-vision-2383-aces2-sdr",
+          "label": "Vision 2383 · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Vision 2383",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-5248-kodak-vision-2383-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-5248-adx",
+          "label": "ADX",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-5248-adx.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-5250",
+      "brand": "Kodak",
+      "name": "5250",
+      "type": "cinema",
+      "iso": null,
+      "push": 0,
+      "defaultLook": "spc-kodak-5250-kodak-vision-2383-aces2-sdr",
+      "swatch": [
+        "#8FA3B7",
+        "#C1AB9B",
+        "#5D936E"
+      ],
+      "luminance": 0.6108117266803332,
+      "variants": [
+        {
+          "id": "spc-kodak-5250-kodak-vision-2383-aces2-sdr",
+          "label": "Vision 2383 · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Vision 2383",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-5250-kodak-vision-2383-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-5250-adx",
+          "label": "ADX",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-5250-adx.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-aerocolor-iv-2460",
+      "brand": "Kodak",
+      "name": "Aerocolor IV 2460",
+      "type": "negative",
+      "iso": 2460,
+      "push": 0,
+      "defaultLook": "spc-kodak-aerocolor-iv-2460-kodak-portra-endura-paper-aces2-sdr",
+      "swatch": [
+        "#99C6D6",
+        "#CFB9AC",
+        "#679F83"
+      ],
+      "luminance": 0.683753120026239,
+      "variants": [
+        {
+          "id": "spc-kodak-aerocolor-iv-2460-kodak-portra-endura-paper-aces2-sdr",
+          "label": "Endura · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Portra Endura Paper",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-aerocolor-iv-2460-kodak-portra-endura-paper-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-aerocolor-iv-2460-adx-printdensity-gammacal",
+          "label": "ADX density",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx-printdensity-gammacal",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-aerocolor-iv-2460-adx-printdensity-gammacal.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-aerocolor-iv-2460-high",
+      "brand": "Kodak",
+      "name": "Aerocolor IV 2460 High",
+      "type": "negative",
+      "iso": 2460,
+      "push": 0,
+      "defaultLook": "spc-kodak-aerocolor-iv-2460-high-kodak-portra-endura-paper-aces2-sdr",
+      "swatch": [
+        "#A1CED9",
+        "#DBC2B4",
+        "#69A586"
+      ],
+      "luminance": 0.713121091862618,
+      "variants": [
+        {
+          "id": "spc-kodak-aerocolor-iv-2460-high-kodak-portra-endura-paper-aces2-sdr",
+          "label": "Endura · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Portra Endura Paper",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-aerocolor-iv-2460-high-kodak-portra-endura-paper-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-aerocolor-iv-2460-high-adx-printdensity-gammacal",
+          "label": "ADX density",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx-printdensity-gammacal",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-aerocolor-iv-2460-high-adx-printdensity-gammacal.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-aerocolor-iv-2460-low",
+      "brand": "Kodak",
+      "name": "Aerocolor IV 2460 Low",
+      "type": "negative",
+      "iso": 2460,
+      "push": 0,
+      "defaultLook": "spc-kodak-aerocolor-iv-2460-low-kodak-portra-endura-paper-aces2-sdr",
+      "swatch": [
+        "#92B2C4",
+        "#BEA69D",
+        "#6B937E"
+      ],
+      "luminance": 0.6263074909758717,
+      "variants": [
+        {
+          "id": "spc-kodak-aerocolor-iv-2460-low-kodak-portra-endura-paper-aces2-sdr",
+          "label": "Endura · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Portra Endura Paper",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-aerocolor-iv-2460-low-kodak-portra-endura-paper-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-aerocolor-iv-2460-low-adx-printdensity-gammacal",
+          "label": "ADX density",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx-printdensity-gammacal",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-aerocolor-iv-2460-low-adx-printdensity-gammacal.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-exr-100t",
+      "brand": "Kodak",
+      "name": "EXR 100T",
+      "type": "cinema",
+      "iso": 100,
+      "push": 0,
+      "defaultLook": "spc-kodak-exr-100t-5248-kodak-vision-2383-aces2-sdr",
+      "swatch": [
+        "#91AABB",
+        "#B8A597",
+        "#739C7C"
+      ],
+      "luminance": 0.625860721424,
+      "variants": [
+        {
+          "id": "spc-kodak-exr-100t-5248-kodak-vision-2383-aces2-sdr",
+          "label": "Vision 2383 · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Vision 2383",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-exr-100t-5248-kodak-vision-2383-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-exr-100t-5248-adx",
+          "label": "ADX",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-exr-100t-5248-adx.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-exr-200t",
+      "brand": "Kodak",
+      "name": "EXR 200T",
+      "type": "cinema",
+      "iso": 200,
+      "push": 0,
+      "defaultLook": "spc-kodak-exr-200t-5293-kodak-vision-2383-aces2-sdr",
+      "swatch": [
+        "#89ABB9",
+        "#B1A89A",
+        "#709A74"
+      ],
+      "luminance": 0.6225081406464992,
+      "variants": [
+        {
+          "id": "spc-kodak-exr-200t-5293-kodak-vision-2383-aces2-sdr",
+          "label": "Vision 2383 · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Vision 2383",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-exr-200t-5293-kodak-vision-2383-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-exr-200t-5293-adx",
+          "label": "ADX",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-exr-200t-5293-adx.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-verita-200d",
+      "brand": "Kodak",
+      "name": "Verita 200D",
+      "type": "cinema",
+      "iso": 200,
+      "push": 0,
+      "defaultLook": "spk-kodak-verita-200d-kodak-2383",
+      "swatch": [
+        "#BBD5E7",
+        "#DCCBBE",
+        "#B8CEA3"
+      ],
+      "luminance": 0.8008826357395549,
+      "variants": [
+        {
+          "id": "spk-kodak-verita-200d-kodak-2383",
+          "label": "2383",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Vision 2383",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=1.078 couplers=0.792 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-verita-200d-kodak-2383.bin"
+        },
+        {
+          "id": "spk-kodak-verita-200d-kodak-2393",
+          "label": "2393",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Vision Premier 2393",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=1.021 couplers=0.817 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-verita-200d-kodak-2393.bin"
+        },
+        {
+          "id": "spc-kodak-verita-200d-5206-kodak-vision-2383-aces2-sdr",
+          "label": "Vision 2383 · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Vision 2383",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-verita-200d-5206-kodak-vision-2383-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-verita-200d-5206-adx",
+          "label": "ADX",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-verita-200d-5206-adx.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-vision-320t",
+      "brand": "Kodak",
+      "name": "Vision 320T",
+      "type": "cinema",
+      "iso": 320,
+      "push": 0,
+      "defaultLook": "spc-kodak-vision-320t-5277-kodak-vision-2383-aces2-sdr",
+      "swatch": [
+        "#8DA5B6",
+        "#B0A196",
+        "#709777"
+      ],
+      "luminance": 0.6069708331813312,
+      "variants": [
+        {
+          "id": "spc-kodak-vision-320t-5277-kodak-vision-2383-aces2-sdr",
+          "label": "Vision 2383 · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Vision 2383",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-vision-320t-5277-kodak-vision-2383-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-vision-320t-5277-adx",
+          "label": "ADX",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-vision-320t-5277-adx.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-vision3-200t",
+      "brand": "Kodak",
+      "name": "Vision3 200T",
+      "type": "cinema",
+      "iso": 200,
+      "push": 0,
+      "defaultLook": "spk-kodak-vision3-200t-kodak-2383",
+      "swatch": [
+        "#C1D5E9",
+        "#DCCCBC",
+        "#C3D198"
+      ],
+      "luminance": 0.8082137398291277,
+      "variants": [
+        {
+          "id": "spk-kodak-vision3-200t-kodak-2383",
+          "label": "2383",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Vision 2383",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=1.046 couplers=0.954 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-vision3-200t-kodak-2383.bin"
+        },
+        {
+          "id": "spk-kodak-vision3-200t-kodak-2393",
+          "label": "2393",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Vision Premier 2393",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.991 couplers=0.974 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-vision3-200t-kodak-2393.bin"
+        },
+        {
+          "id": "spc-kodak-vision3-200t-5213-kodak-vision-2383-aces2-sdr",
+          "label": "Vision 2383 · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Vision 2383",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-vision3-200t-5213-kodak-vision-2383-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-vision3-200t-5213-adx",
+          "label": "ADX",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-vision3-200t-5213-adx.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-vision3-250d",
+      "brand": "Kodak",
+      "name": "Vision3 250D",
+      "type": "cinema",
+      "iso": 250,
+      "push": 0,
+      "defaultLook": "spk-kodak-vision3-250d-kodak-2383",
+      "swatch": [
+        "#B9D2E5",
+        "#DACABE",
+        "#B6CDA5"
+      ],
+      "luminance": 0.7956351333339136,
+      "variants": [
+        {
+          "id": "spk-kodak-vision3-250d-kodak-2383",
+          "label": "2383",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Vision 2383",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=1.015 couplers=0.802 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-vision3-250d-kodak-2383.bin"
+        },
+        {
+          "id": "spk-kodak-vision3-250d-kodak-2393",
+          "label": "2393",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Vision Premier 2393",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.966 couplers=0.837 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-vision3-250d-kodak-2393.bin"
+        },
+        {
+          "id": "spc-kodak-vision3-250d-5207-kodak-vision-2383-aces2-sdr",
+          "label": "Vision 2383 · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Vision 2383",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-vision3-250d-5207-kodak-vision-2383-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-vision3-250d-5207-adx",
+          "label": "ADX",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-vision3-250d-5207-adx.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-vision3-500t",
+      "brand": "Kodak",
+      "name": "Vision3 500T",
+      "type": "cinema",
+      "iso": 500,
+      "push": 0,
+      "defaultLook": "spk-kodak-vision3-500t-kodak-2383",
+      "swatch": [
+        "#BFD4E8",
+        "#DACABA",
+        "#C0CE9C"
+      ],
+      "luminance": 0.8002731346555257,
+      "variants": [
+        {
+          "id": "spk-kodak-vision3-500t-kodak-2383",
+          "label": "2383",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Vision 2383",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=1.015 couplers=1.03 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-vision3-500t-kodak-2383.bin"
+        },
+        {
+          "id": "spk-kodak-vision3-500t-kodak-2393",
+          "label": "2393",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Vision Premier 2393",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.963 couplers=1.04 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-vision3-500t-kodak-2393.bin"
+        },
+        {
+          "id": "spc-kodak-vision3-500t-5219-kodak-vision-2383-aces2-sdr",
+          "label": "Vision 2383 · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Vision 2383",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-vision3-500t-5219-kodak-vision-2383-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-vision3-500t-5219-adx",
+          "label": "ADX",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-vision3-500t-5219-adx.bin"
+        }
+      ]
+    },
+    {
+      "id": "kodak-vision3-50d",
+      "brand": "Kodak",
+      "name": "Vision3 50D",
+      "type": "cinema",
+      "iso": 50,
+      "push": 0,
+      "defaultLook": "spk-kodak-vision3-50d-kodak-2383",
+      "swatch": [
+        "#BDD5E8",
+        "#DDCEC0",
+        "#BBD2A5"
+      ],
+      "luminance": 0.8098167589209675,
+      "variants": [
+        {
+          "id": "spk-kodak-vision3-50d-kodak-2383",
+          "label": "2383",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Vision 2383",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=1.013 couplers=0.837 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-vision3-50d-kodak-2383.bin"
+        },
+        {
+          "id": "spk-kodak-vision3-50d-kodak-2393",
+          "label": "2393",
+          "engine": "SpektraFilm",
+          "source": "spektrafilm_lut",
+          "print": "Vision Premier 2393",
+          "variant": null,
+          "exposureEV": 1.5,
+          "note": "neutralize=True hue_preserve=0.0 chroma_gain=1.2 shoulder=4 print_gamma=0.961 couplers=0.873 black_level=0.008",
+          "displayRequirement": "Use only with ACES 2.0 SDR 100 nit, Rec.709 primaries, gamma 2.2 display encoding. Keep Alcedo's default grade (Exposure +1.5, Contrast 15, Saturation 1.3): the LUT undoes its contrast and saturation and keeps the exposure.",
+          "lut": "spk-kodak-vision3-50d-kodak-2393.bin"
+        },
+        {
+          "id": "spc-kodak-vision3-50d-5203-kodak-vision-2383-aces2-sdr",
+          "label": "Vision 2383 · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Vision 2383",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-kodak-vision3-50d-5203-kodak-vision-2383-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-kodak-vision3-50d-5203-adx",
+          "label": "ADX",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-kodak-vision3-50d-5203-adx.bin"
+        }
+      ]
+    },
+    {
+      "id": "fujifilm-eterna-500",
+      "brand": "Fujifilm",
+      "name": "Eterna 500",
+      "type": "cinema",
+      "iso": null,
+      "push": 0,
+      "defaultLook": "spc-fujifilm-eterna-500-kodak-vision-2383-aces2-sdr",
+      "swatch": [
+        "#8FA4B9",
+        "#B9A497",
+        "#779979"
+      ],
+      "luminance": 0.6176513168453609,
+      "variants": [
+        {
+          "id": "spc-fujifilm-eterna-500-kodak-vision-2383-aces2-sdr",
+          "label": "Vision 2383 · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Vision 2383",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-fujifilm-eterna-500-kodak-vision-2383-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-fujifilm-eterna-500-adx",
+          "label": "ADX",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-fujifilm-eterna-500-adx.bin"
+        }
+      ]
+    },
+    {
+      "id": "fujifilm-eterna-500-vivid",
+      "brand": "Fujifilm",
+      "name": "Eterna 500 Vivid",
+      "type": "cinema",
+      "iso": null,
+      "push": 0,
+      "defaultLook": "spc-fujifilm-eterna-500-vivid-kodak-vision-2383-aces2-sdr",
+      "swatch": [
+        "#90A7BD",
+        "#BBA79A",
+        "#769C7A"
+      ],
+      "luminance": 0.6266690251367028,
+      "variants": [
+        {
+          "id": "spc-fujifilm-eterna-500-vivid-kodak-vision-2383-aces2-sdr",
+          "label": "Vision 2383 · SDR",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": "Vision 2383",
+          "variant": "aces2-sdr",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": "Use only with ACES 2.0 - SDR 100 nits, Rec.709 primaries, gamma 2.2 display encoding.",
+          "lut": "spc-fujifilm-eterna-500-vivid-kodak-vision-2383-aces2-sdr.bin"
+        },
+        {
+          "id": "spc-fujifilm-eterna-500-vivid-adx",
+          "label": "ADX",
+          "engine": "Spectral Film",
+          "source": "spectral_film_lut",
+          "print": null,
+          "variant": "adx",
+          "exposureEV": 0.0,
+          "note": null,
+          "displayRequirement": null,
+          "lut": "spc-fujifilm-eterna-500-vivid-adx.bin"
+        }
+      ]
+    }
+  ],
+  "looks": [
+    {
+      "id": "spc-agfa-vista-100-adx-printdensity-gammacal",
+      "stock": "agfa-vista-100",
+      "lut": "spc-agfa-vista-100-adx-printdensity-gammacal.bin",
+      "label": "ADX density",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6E8E9C",
+        "#9A8781",
+        "#578663"
+      ]
+    },
+    {
+      "id": "spc-agfa-vista-100-kodak-portra-endura-paper-aces2-sdr",
+      "stock": "agfa-vista-100",
+      "lut": "spc-agfa-vista-100-kodak-portra-endura-paper-aces2-sdr.bin",
+      "label": "Endura · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#90B4D0",
+        "#C8B0A1",
+        "#79A175"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-c200-adx-printdensity-gammacal",
+      "stock": "fujifilm-c200",
+      "lut": "spc-fujifilm-c200-adx-printdensity-gammacal.bin",
+      "label": "ADX density",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6E8D9B",
+        "#9B8781",
+        "#578665"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-c200-kodak-portra-endura-paper-aces2-sdr",
+      "stock": "fujifilm-c200",
+      "lut": "spc-fujifilm-c200-kodak-portra-endura-paper-aces2-sdr.bin",
+      "label": "Endura · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#94B5CC",
+        "#CDB29D",
+        "#79A37B"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-eterna-500-adx",
+      "stock": "fujifilm-eterna-500",
+      "lut": "spc-fujifilm-eterna-500-adx.bin",
+      "label": "ADX",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6E8194",
+        "#94807B",
+        "#567F61"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-eterna-500-kodak-vision-2383-aces2-sdr",
+      "stock": "fujifilm-eterna-500",
+      "lut": "spc-fujifilm-eterna-500-kodak-vision-2383-aces2-sdr.bin",
+      "label": "Vision 2383 · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#8FA4B9",
+        "#B9A497",
+        "#779979"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-eterna-500-vivid-adx",
+      "stock": "fujifilm-eterna-500-vivid",
+      "lut": "spc-fujifilm-eterna-500-vivid-adx.bin",
+      "label": "ADX",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6E8497",
+        "#97837E",
+        "#558262"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-eterna-500-vivid-kodak-vision-2383-aces2-sdr",
+      "stock": "fujifilm-eterna-500-vivid",
+      "lut": "spc-fujifilm-eterna-500-vivid-kodak-vision-2383-aces2-sdr.bin",
+      "label": "Vision 2383 · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#90A7BD",
+        "#BBA79A",
+        "#769C7A"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-fp-100c-aces2-sdr",
+      "stock": "fujifilm-fp-100c",
+      "lut": "spc-fujifilm-fp-100c-aces2-sdr.bin",
+      "label": "SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#B2CCD9",
+        "#CFCCC1",
+        "#A2C1A2"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-instax-color-aces2-sdr",
+      "stock": "fujifilm-instax-color",
+      "lut": "spc-fujifilm-instax-color-aces2-sdr.bin",
+      "label": "SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#A5B9C3",
+        "#C1BEB4",
+        "#8EA99A"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-natura-1600-adx-printdensity-gammacal",
+      "stock": "fujifilm-natura-1600",
+      "lut": "spc-fujifilm-natura-1600-adx-printdensity-gammacal.bin",
+      "label": "ADX density",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#7190A8",
+        "#A08E87",
+        "#558A66"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-natura-1600-kodak-portra-endura-paper-aces2-sdr",
+      "stock": "fujifilm-natura-1600",
+      "lut": "spc-fujifilm-natura-1600-kodak-portra-endura-paper-aces2-sdr.bin",
+      "label": "Endura · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#96BAD6",
+        "#D1BAA6",
+        "#76A77C"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-pro-160c-adx-printdensity-gammacal",
+      "stock": "fujifilm-pro-160c",
+      "lut": "spc-fujifilm-pro-160c-adx-printdensity-gammacal.bin",
+      "label": "ADX density",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6C8A9C",
+        "#978680",
+        "#598765"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-pro-160c-kodak-portra-endura-paper-aces2-sdr",
+      "stock": "fujifilm-pro-160c",
+      "lut": "spc-fujifilm-pro-160c-kodak-portra-endura-paper-aces2-sdr.bin",
+      "label": "Endura · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#93B1C8",
+        "#CDB19B",
+        "#7FA57A"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-pro-160s-adx-printdensity-gammacal",
+      "stock": "fujifilm-pro-160s",
+      "lut": "spc-fujifilm-pro-160s-adx-printdensity-gammacal.bin",
+      "label": "ADX density",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6A8292",
+        "#8E7F7A",
+        "#5B8064"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-pro-160s-kodak-portra-endura-paper-aces2-sdr",
+      "stock": "fujifilm-pro-160s",
+      "lut": "spc-fujifilm-pro-160s-kodak-portra-endura-paper-aces2-sdr.bin",
+      "label": "Endura · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#90A9C0",
+        "#C3A896",
+        "#7F9E7A"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-pro-400h-adx-printdensity-gammacal",
+      "stock": "fujifilm-pro-400h",
+      "lut": "spc-fujifilm-pro-400h-adx-printdensity-gammacal.bin",
+      "label": "ADX density",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6B8B99",
+        "#94847E",
+        "#588663"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-pro-400h-kodak-portra-endura-paper-aces2-sdr",
+      "stock": "fujifilm-pro-400h",
+      "lut": "spc-fujifilm-pro-400h-kodak-portra-endura-paper-aces2-sdr.bin",
+      "label": "Endura · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#92B0C5",
+        "#CBAD98",
+        "#7DA176"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-provia-100f-aces2-sdr",
+      "stock": "fujifilm-provia-100f",
+      "lut": "spc-fujifilm-provia-100f-aces2-sdr.bin",
+      "label": "SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#889FB7",
+        "#B6A191",
+        "#6C916A"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-superia-reala-adx-printdensity-gammacal",
+      "stock": "fujifilm-superia-reala",
+      "lut": "spc-fujifilm-superia-reala-adx-printdensity-gammacal.bin",
+      "label": "ADX density",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6E93A2",
+        "#978480",
+        "#578864"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-superia-reala-kodak-portra-endura-paper-aces2-sdr",
+      "stock": "fujifilm-superia-reala",
+      "lut": "spc-fujifilm-superia-reala-kodak-portra-endura-paper-aces2-sdr.bin",
+      "label": "Endura · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#95BAD0",
+        "#CBAE9D",
+        "#7CA377"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-superia-x-tra-400-adx-printdensity-gammacal",
+      "stock": "fujifilm-superia-x-tra-400",
+      "lut": "spc-fujifilm-superia-x-tra-400-adx-printdensity-gammacal.bin",
+      "label": "ADX density",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6D8B9E",
+        "#998981",
+        "#548765"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-superia-x-tra-400-kodak-portra-endura-paper-aces2-sdr",
+      "stock": "fujifilm-superia-x-tra-400",
+      "lut": "spc-fujifilm-superia-x-tra-400-kodak-portra-endura-paper-aces2-sdr.bin",
+      "label": "Endura · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#90B3CF",
+        "#C9B4A1",
+        "#76A47C"
+      ]
+    },
+    {
+      "id": "spc-fujifilm-velvia-50-aces2-sdr",
+      "stock": "fujifilm-velvia-50",
+      "lut": "spc-fujifilm-velvia-50-aces2-sdr.bin",
+      "label": "SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#8197B5",
+        "#AD9785",
+        "#618F5F"
+      ]
+    },
+    {
+      "id": "spc-kodak-5247-adx",
+      "stock": "kodak-5247",
+      "lut": "spc-kodak-5247-adx.bin",
+      "label": "ADX",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6E879E",
+        "#98807B",
+        "#457F52"
+      ]
+    },
+    {
+      "id": "spc-kodak-5247-kodak-vision-2383-aces2-sdr",
+      "stock": "kodak-5247",
+      "lut": "spc-kodak-5247-kodak-vision-2383-aces2-sdr.bin",
+      "label": "Vision 2383 · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#8FA8C5",
+        "#BCA39C",
+        "#608E5F"
+      ]
+    },
+    {
+      "id": "spc-kodak-5247-ii-adx",
+      "stock": "kodak-5247-ii",
+      "lut": "spc-kodak-5247-ii-adx.bin",
+      "label": "ADX",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#678691",
+        "#8A847C",
+        "#4B805E"
+      ]
+    },
+    {
+      "id": "spc-kodak-5247-ii-kodak-vision-2383-aces2-sdr",
+      "stock": "kodak-5247-ii",
+      "lut": "spc-kodak-5247-ii-kodak-vision-2383-aces2-sdr.bin",
+      "label": "Vision 2383 · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#86A9BA",
+        "#B1A89B",
+        "#639773"
+      ]
+    },
+    {
+      "id": "spc-kodak-5247-ii-alt-adx",
+      "stock": "kodak-5247-ii-alt",
+      "lut": "spc-kodak-5247-ii-alt-adx.bin",
+      "label": "ADX",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#708093",
+        "#92867D",
+        "#467F5D"
+      ]
+    },
+    {
+      "id": "spc-kodak-5247-ii-alt-kodak-vision-2383-aces2-sdr",
+      "stock": "kodak-5247-ii-alt",
+      "lut": "spc-kodak-5247-ii-alt-kodak-vision-2383-aces2-sdr.bin",
+      "label": "Vision 2383 · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#91A4B9",
+        "#B8AB9A",
+        "#5F9471"
+      ]
+    },
+    {
+      "id": "spc-kodak-5248-adx",
+      "stock": "kodak-5248",
+      "lut": "spc-kodak-5248-adx.bin",
+      "label": "ADX",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#738A9B",
+        "#A3847F",
+        "#44835D"
+      ]
+    },
+    {
+      "id": "spc-kodak-5248-kodak-vision-2383-aces2-sdr",
+      "stock": "kodak-5248",
+      "lut": "spc-kodak-5248-kodak-vision-2383-aces2-sdr.bin",
+      "label": "Vision 2383 · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#92B3C5",
+        "#C3AC9C",
+        "#5F9A6F"
+      ]
+    },
+    {
+      "id": "spc-kodak-5250-adx",
+      "stock": "kodak-5250",
+      "lut": "spc-kodak-5250-adx.bin",
+      "label": "ADX",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#717F91",
+        "#9F857F",
+        "#437F5C"
+      ]
+    },
+    {
+      "id": "spc-kodak-5250-kodak-vision-2383-aces2-sdr",
+      "stock": "kodak-5250",
+      "lut": "spc-kodak-5250-kodak-vision-2383-aces2-sdr.bin",
+      "label": "Vision 2383 · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#8FA3B7",
+        "#C1AB9B",
+        "#5D936E"
+      ]
+    },
+    {
+      "id": "spc-kodak-aerochrome-iii-infrared-film-1443-aces2-sdr",
+      "stock": "kodak-aerochrome-iii-infrared-film-1443",
+      "lut": "spc-kodak-aerochrome-iii-infrared-film-1443-aces2-sdr.bin",
+      "label": "SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#F6A884",
+        "#D5A57E",
+        "#5B6170"
+      ]
+    },
+    {
+      "id": "spc-kodak-aerocolor-iv-2460-adx-printdensity-gammacal",
+      "stock": "kodak-aerocolor-iv-2460",
+      "lut": "spc-kodak-aerocolor-iv-2460-adx-printdensity-gammacal.bin",
+      "label": "ADX density",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#739DA6",
+        "#A08C8A",
+        "#4F8267"
+      ]
+    },
+    {
+      "id": "spc-kodak-aerocolor-iv-2460-kodak-portra-endura-paper-aces2-sdr",
+      "stock": "kodak-aerocolor-iv-2460",
+      "lut": "spc-kodak-aerocolor-iv-2460-kodak-portra-endura-paper-aces2-sdr.bin",
+      "label": "Endura · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#99C6D6",
+        "#CFB9AC",
+        "#679F83"
+      ]
+    },
+    {
+      "id": "spc-kodak-aerocolor-iv-2460-high-adx-printdensity-gammacal",
+      "stock": "kodak-aerocolor-iv-2460-high",
+      "lut": "spc-kodak-aerocolor-iv-2460-high-adx-printdensity-gammacal.bin",
+      "label": "ADX density",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#7EA7AF",
+        "#AF9594",
+        "#51886B"
+      ]
+    },
+    {
+      "id": "spc-kodak-aerocolor-iv-2460-high-kodak-portra-endura-paper-aces2-sdr",
+      "stock": "kodak-aerocolor-iv-2460-high",
+      "lut": "spc-kodak-aerocolor-iv-2460-high-kodak-portra-endura-paper-aces2-sdr.bin",
+      "label": "Endura · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#A1CED9",
+        "#DBC2B4",
+        "#69A586"
+      ]
+    },
+    {
+      "id": "spc-kodak-aerocolor-iv-2460-low-adx-printdensity-gammacal",
+      "stock": "kodak-aerocolor-iv-2460-low",
+      "lut": "spc-kodak-aerocolor-iv-2460-low-adx-printdensity-gammacal.bin",
+      "label": "ADX density",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6E8B8F",
+        "#8F7E7C",
+        "#527762"
+      ]
+    },
+    {
+      "id": "spc-kodak-aerocolor-iv-2460-low-kodak-portra-endura-paper-aces2-sdr",
+      "stock": "kodak-aerocolor-iv-2460-low",
+      "lut": "spc-kodak-aerocolor-iv-2460-low-kodak-portra-endura-paper-aces2-sdr.bin",
+      "label": "Endura · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#92B2C4",
+        "#BEA69D",
+        "#6B937E"
+      ]
+    },
+    {
+      "id": "spc-kodak-ektachrome-100d-aces2-sdr",
+      "stock": "kodak-ektachrome-100d",
+      "lut": "spc-kodak-ektachrome-100d-aces2-sdr.bin",
+      "label": "SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#7B8897",
+        "#998777",
+        "#647F58"
+      ]
+    },
+    {
+      "id": "spc-kodak-ektar-100-adx-printdensity-gammacal",
+      "stock": "kodak-ektar-100",
+      "lut": "spc-kodak-ektar-100-adx-printdensity-gammacal.bin",
+      "label": "ADX density",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6E8E9B",
+        "#93827D",
+        "#4F7F5F"
+      ]
+    },
+    {
+      "id": "spc-kodak-ektar-100-kodak-portra-endura-paper-aces2-sdr",
+      "stock": "kodak-ektar-100",
+      "lut": "spc-kodak-ektar-100-kodak-portra-endura-paper-aces2-sdr.bin",
+      "label": "Endura · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#92B4CF",
+        "#C4AA9E",
+        "#689872"
+      ]
+    },
+    {
+      "id": "spc-kodak-exr-100t-5248-adx",
+      "stock": "kodak-exr-100t",
+      "lut": "spc-kodak-exr-100t-5248-adx.bin",
+      "label": "ADX",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6D8595",
+        "#93817A",
+        "#538263"
+      ]
+    },
+    {
+      "id": "spc-kodak-exr-100t-5248-kodak-vision-2383-aces2-sdr",
+      "stock": "kodak-exr-100t",
+      "lut": "spc-kodak-exr-100t-5248-kodak-vision-2383-aces2-sdr.bin",
+      "label": "Vision 2383 · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#91AABB",
+        "#B8A597",
+        "#739C7C"
+      ]
+    },
+    {
+      "id": "spc-kodak-exr-200t-5293-adx",
+      "stock": "kodak-exr-200t",
+      "lut": "spc-kodak-exr-200t-5293-adx.bin",
+      "label": "ADX",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#678790",
+        "#8A847B",
+        "#50825F"
+      ]
+    },
+    {
+      "id": "spc-kodak-exr-200t-5293-kodak-vision-2383-aces2-sdr",
+      "stock": "kodak-exr-200t",
+      "lut": "spc-kodak-exr-200t-5293-kodak-vision-2383-aces2-sdr.bin",
+      "label": "Vision 2383 · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#89ABB9",
+        "#B1A89A",
+        "#709A74"
+      ]
+    },
+    {
+      "id": "spc-kodak-gold-200-adx-printdensity-gammacal",
+      "stock": "kodak-gold-200",
+      "lut": "spc-kodak-gold-200-adx-printdensity-gammacal.bin",
+      "label": "ADX density",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#718B95",
+        "#90807A",
+        "#4F7E5F"
+      ]
+    },
+    {
+      "id": "spc-kodak-gold-200-kodak-portra-endura-paper-aces2-sdr",
+      "stock": "kodak-gold-200",
+      "lut": "spc-kodak-gold-200-kodak-portra-endura-paper-aces2-sdr.bin",
+      "label": "Endura · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#96B3C9",
+        "#BFA99A",
+        "#6A9873"
+      ]
+    },
+    {
+      "id": "spc-kodak-kodachrome-64-aces2-sdr",
+      "stock": "kodak-kodachrome-64",
+      "lut": "spc-kodak-kodachrome-64-aces2-sdr.bin",
+      "label": "SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#8096A1",
+        "#A19281",
+        "#678F65"
+      ]
+    },
+    {
+      "id": "spc-kodak-portra-160-adx-printdensity-gammacal",
+      "stock": "kodak-portra-160",
+      "lut": "spc-kodak-portra-160-adx-printdensity-gammacal.bin",
+      "label": "ADX density",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6D8C99",
+        "#8F7F7B",
+        "#5C7C5F"
+      ]
+    },
+    {
+      "id": "spc-kodak-portra-160-kodak-portra-endura-paper-aces2-sdr",
+      "stock": "kodak-portra-160",
+      "lut": "spc-kodak-portra-160-kodak-portra-endura-paper-aces2-sdr.bin",
+      "label": "Endura · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#95B3CC",
+        "#C0A79A",
+        "#7F9872"
+      ]
+    },
+    {
+      "id": "spc-kodak-portra-400-adx-printdensity-gammacal",
+      "stock": "kodak-portra-400",
+      "lut": "spc-kodak-portra-400-adx-printdensity-gammacal.bin",
+      "label": "ADX density",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6D8E9D",
+        "#95847E",
+        "#4D7F5E"
+      ]
+    },
+    {
+      "id": "spc-kodak-portra-400-kodak-portra-endura-paper-aces2-sdr",
+      "stock": "kodak-portra-400",
+      "lut": "spc-kodak-portra-400-kodak-portra-endura-paper-aces2-sdr.bin",
+      "label": "Endura · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#94B2D0",
+        "#CAAB9E",
+        "#66956E"
+      ]
+    },
+    {
+      "id": "spc-kodak-portra-800-1600-adx-printdensity-gammacal",
+      "stock": "kodak-portra-800-push-1",
+      "lut": "spc-kodak-portra-800-1600-adx-printdensity-gammacal.bin",
+      "label": "ADX density",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#7395A8",
+        "#9D8C87",
+        "#4D8863"
+      ]
+    },
+    {
+      "id": "spc-kodak-portra-800-1600-kodak-portra-endura-paper-aces2-sdr",
+      "stock": "kodak-portra-800-push-1",
+      "lut": "spc-kodak-portra-800-1600-kodak-portra-endura-paper-aces2-sdr.bin",
+      "label": "Endura · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#94B9DE",
+        "#C8B4AF",
+        "#669F76"
+      ]
+    },
+    {
+      "id": "spc-kodak-portra-800-3200-adx-printdensity-gammacal",
+      "stock": "kodak-portra-800-push-2",
+      "lut": "spc-kodak-portra-800-3200-adx-printdensity-gammacal.bin",
+      "label": "ADX density",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#7295A9",
+        "#9E8C86",
+        "#4C8964"
+      ]
+    },
+    {
+      "id": "spc-kodak-portra-800-3200-kodak-portra-endura-paper-aces2-sdr",
+      "stock": "kodak-portra-800-push-2",
+      "lut": "spc-kodak-portra-800-3200-kodak-portra-endura-paper-aces2-sdr.bin",
+      "label": "Endura · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#96BCD8",
+        "#CDB6A7",
+        "#66A278"
+      ]
+    },
+    {
+      "id": "spc-kodak-portra-800-adx-printdensity-gammacal",
+      "stock": "kodak-portra-800",
+      "lut": "spc-kodak-portra-800-adx-printdensity-gammacal.bin",
+      "label": "ADX density",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6C8695",
+        "#8F7F7B",
+        "#4F7D60"
+      ]
+    },
+    {
+      "id": "spc-kodak-portra-800-kodak-portra-endura-paper-aces2-sdr",
+      "stock": "kodak-portra-800",
+      "lut": "spc-kodak-portra-800-kodak-portra-endura-paper-aces2-sdr.bin",
+      "label": "Endura · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#8FADC9",
+        "#BDA79B",
+        "#689776"
+      ]
+    },
+    {
+      "id": "spc-kodak-ultramax-500-adx-printdensity-gammacal",
+      "stock": "kodak-ultramax-500",
+      "lut": "spc-kodak-ultramax-500-adx-printdensity-gammacal.bin",
+      "label": "ADX density",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6D8595",
+        "#8F7F7B",
+        "#4F7E60"
+      ]
+    },
+    {
+      "id": "spc-kodak-ultramax-500-kodak-portra-endura-paper-aces2-sdr",
+      "stock": "kodak-ultramax-500",
+      "lut": "spc-kodak-ultramax-500-kodak-portra-endura-paper-aces2-sdr.bin",
+      "label": "Endura · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#91ADC9",
+        "#BDA79C",
+        "#6A9875"
+      ]
+    },
+    {
+      "id": "spc-kodak-vericolor-iii-adx-printdensity-gammacal",
+      "stock": "kodak-vericolor-iii",
+      "lut": "spc-kodak-vericolor-iii-adx-printdensity-gammacal.bin",
+      "label": "ADX density",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6F889D",
+        "#978780",
+        "#4D8361"
+      ]
+    },
+    {
+      "id": "spc-kodak-vericolor-iii-kodak-portra-endura-paper-aces2-sdr",
+      "stock": "kodak-vericolor-iii",
+      "lut": "spc-kodak-vericolor-iii-kodak-portra-endura-paper-aces2-sdr.bin",
+      "label": "Endura · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#90B1D0",
+        "#C5B2A1",
+        "#659E75"
+      ]
+    },
+    {
+      "id": "spc-kodak-verita-200d-5206-adx",
+      "stock": "kodak-verita-200d",
+      "lut": "spc-kodak-verita-200d-5206-adx.bin",
+      "label": "ADX",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6F7D97",
+        "#92797B",
+        "#53785C"
+      ]
+    },
+    {
+      "id": "spc-kodak-verita-200d-5206-kodak-vision-2383-aces2-sdr",
+      "stock": "kodak-verita-200d",
+      "lut": "spc-kodak-verita-200d-5206-kodak-vision-2383-aces2-sdr.bin",
+      "label": "Vision 2383 · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#8FA3BD",
+        "#B49E99",
+        "#709374"
+      ]
+    },
+    {
+      "id": "spc-kodak-vision3-200t-5213-adx",
+      "stock": "kodak-vision3-200t",
+      "lut": "spc-kodak-vision3-200t-5213-adx.bin",
+      "label": "ADX",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#68808F",
+        "#8C7E78",
+        "#4F7D5E"
+      ]
+    },
+    {
+      "id": "spc-kodak-vision3-200t-5213-kodak-vision-2383-aces2-sdr",
+      "stock": "kodak-vision3-200t",
+      "lut": "spc-kodak-vision3-200t-5213-kodak-vision-2383-aces2-sdr.bin",
+      "label": "Vision 2383 · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#89A4B6",
+        "#B2A296",
+        "#6A9675"
+      ]
+    },
+    {
+      "id": "spc-kodak-vision3-250d-5207-adx",
+      "stock": "kodak-vision3-250d",
+      "lut": "spc-kodak-vision3-250d-5207-adx.bin",
+      "label": "ADX",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6A828F",
+        "#8B7E78",
+        "#4C7D5E"
+      ]
+    },
+    {
+      "id": "spc-kodak-vision3-250d-5207-kodak-vision-2383-aces2-sdr",
+      "stock": "kodak-vision3-250d",
+      "lut": "spc-kodak-vision3-250d-5207-kodak-vision-2383-aces2-sdr.bin",
+      "label": "Vision 2383 · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#8BA5B6",
+        "#B1A196",
+        "#639475"
+      ]
+    },
+    {
+      "id": "spc-kodak-vision3-500t-5219-adx",
+      "stock": "kodak-vision3-500t",
+      "lut": "spc-kodak-vision3-500t-5219-adx.bin",
+      "label": "ADX",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6C8390",
+        "#8C7E78",
+        "#507E5F"
+      ]
+    },
+    {
+      "id": "spc-kodak-vision3-500t-5219-kodak-vision-2383-aces2-sdr",
+      "stock": "kodak-vision3-500t",
+      "lut": "spc-kodak-vision3-500t-5219-kodak-vision-2383-aces2-sdr.bin",
+      "label": "Vision 2383 · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#8FA7B7",
+        "#B2A296",
+        "#6D9777"
+      ]
+    },
+    {
+      "id": "spc-kodak-vision3-50d-5203-adx",
+      "stock": "kodak-vision3-50d",
+      "lut": "spc-kodak-vision3-50d-5203-adx.bin",
+      "label": "ADX",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#68818F",
+        "#8C7D77",
+        "#4D7D5E"
+      ]
+    },
+    {
+      "id": "spc-kodak-vision3-50d-5203-kodak-vision-2383-aces2-sdr",
+      "stock": "kodak-vision3-50d",
+      "lut": "spc-kodak-vision3-50d-5203-kodak-vision-2383-aces2-sdr.bin",
+      "label": "Vision 2383 · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#88A4B6",
+        "#B2A195",
+        "#669576"
+      ]
+    },
+    {
+      "id": "spc-kodak-vision-320t-5277-adx",
+      "stock": "kodak-vision-320t",
+      "lut": "spc-kodak-vision-320t-5277-adx.bin",
+      "label": "ADX",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#6A818F",
+        "#8A7D78",
+        "#527D5F"
+      ]
+    },
+    {
+      "id": "spc-kodak-vision-320t-5277-kodak-vision-2383-aces2-sdr",
+      "stock": "kodak-vision-320t",
+      "lut": "spc-kodak-vision-320t-5277-kodak-vision-2383-aces2-sdr.bin",
+      "label": "Vision 2383 · SDR",
+      "engine": "Spectral Film",
+      "source": "spectral_film_lut",
+      "exposureEV": 0.0,
+      "swatch": [
+        "#8DA5B6",
+        "#B0A196",
+        "#709777"
+      ]
+    },
+    {
+      "id": "spk-fujifilm-c200-fujifilm-crystal-archive-typeii",
+      "stock": "fujifilm-c200",
+      "lut": "spk-fujifilm-c200-fujifilm-crystal-archive-typeii.bin",
+      "label": "Crystal Archive",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#BDD7EA",
+        "#DFCFC3",
+        "#BCD5B1"
+      ]
+    },
+    {
+      "id": "spk-fujifilm-c200-kodak-portra-endura",
+      "stock": "fujifilm-c200",
+      "lut": "spk-fujifilm-c200-kodak-portra-endura.bin",
+      "label": "Endura",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#BED7E9",
+        "#DFD0C4",
+        "#BFD1AF"
+      ]
+    },
+    {
+      "id": "spk-fujifilm-pro-400h-fujifilm-crystal-archive-typeii",
+      "stock": "fujifilm-pro-400h",
+      "lut": "spk-fujifilm-pro-400h-fujifilm-crystal-archive-typeii.bin",
+      "label": "Crystal Archive",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#C0D7E8",
+        "#DECFC5",
+        "#BDD4B0"
+      ]
+    },
+    {
+      "id": "spk-fujifilm-pro-400h-kodak-portra-endura",
+      "stock": "fujifilm-pro-400h",
+      "lut": "spk-fujifilm-pro-400h-kodak-portra-endura.bin",
+      "label": "Endura",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#C1D8E9",
+        "#DFD1C6",
+        "#C2D1AF"
+      ]
+    },
+    {
+      "id": "spk-fujifilm-provia-100f",
+      "stock": "fujifilm-provia-100f",
+      "lut": "spk-fujifilm-provia-100f.bin",
+      "label": "Slide",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#D0E2ED",
+        "#EBE2D7",
+        "#C3DCBD"
+      ]
+    },
+    {
+      "id": "spk-fujifilm-velvia-100",
+      "stock": "fujifilm-velvia-100",
+      "lut": "spk-fujifilm-velvia-100.bin",
+      "label": "Slide",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#DBEAF6",
+        "#F0E9DD",
+        "#CEE8C0"
+      ]
+    },
+    {
+      "id": "spk-fujifilm-xtra-400-fujifilm-crystal-archive-typeii",
+      "stock": "fujifilm-superia-x-tra-400",
+      "lut": "spk-fujifilm-xtra-400-fujifilm-crystal-archive-typeii.bin",
+      "label": "Crystal Archive",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#BDD5E9",
+        "#DECEC1",
+        "#BDD5AF"
+      ]
+    },
+    {
+      "id": "spk-fujifilm-xtra-400-kodak-portra-endura",
+      "stock": "fujifilm-superia-x-tra-400",
+      "lut": "spk-fujifilm-xtra-400-kodak-portra-endura.bin",
+      "label": "Endura",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#BED6E9",
+        "#DECFC3",
+        "#C1D1AE"
+      ]
+    },
+    {
+      "id": "spk-kodak-ektachrome-100",
+      "stock": "kodak-ektachrome-100",
+      "lut": "spk-kodak-ektachrome-100.bin",
+      "label": "Slide",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#C6DAEB",
+        "#E3D8CB",
+        "#C0D6AF"
+      ]
+    },
+    {
+      "id": "spk-kodak-ektar-100-fujifilm-crystal-archive-typeii",
+      "stock": "kodak-ektar-100",
+      "lut": "spk-kodak-ektar-100-fujifilm-crystal-archive-typeii.bin",
+      "label": "Crystal Archive",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#B9D9EA",
+        "#E0CBBF",
+        "#B7D5A8"
+      ]
+    },
+    {
+      "id": "spk-kodak-ektar-100-kodak-portra-endura",
+      "stock": "kodak-ektar-100",
+      "lut": "spk-kodak-ektar-100-kodak-portra-endura.bin",
+      "label": "Endura",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#B9D9EA",
+        "#E0CCBF",
+        "#BBD0A4"
+      ]
+    },
+    {
+      "id": "spk-kodak-gold-200-fujifilm-crystal-archive-typeii",
+      "stock": "kodak-gold-200",
+      "lut": "spk-kodak-gold-200-fujifilm-crystal-archive-typeii.bin",
+      "label": "Crystal Archive",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#C0DBEA",
+        "#E2CEC2",
+        "#B3D7B2"
+      ]
+    },
+    {
+      "id": "spk-kodak-gold-200-kodak-portra-endura",
+      "stock": "kodak-gold-200",
+      "lut": "spk-kodak-gold-200-kodak-portra-endura.bin",
+      "label": "Endura",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#C1DBEB",
+        "#E2CFC3",
+        "#B7D3AD"
+      ]
+    },
+    {
+      "id": "spk-kodak-kodachrome-64",
+      "stock": "kodak-kodachrome-64",
+      "lut": "spk-kodak-kodachrome-64.bin",
+      "label": "Slide",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#C5DDE9",
+        "#E3D5CC",
+        "#BBDAB6"
+      ]
+    },
+    {
+      "id": "spk-kodak-portra-160-fujifilm-crystal-archive-typeii",
+      "stock": "kodak-portra-160",
+      "lut": "spk-kodak-portra-160-fujifilm-crystal-archive-typeii.bin",
+      "label": "Crystal Archive",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#C2DEED",
+        "#E2D1C5",
+        "#C2D6AC"
+      ]
+    },
+    {
+      "id": "spk-kodak-portra-160-kodak-portra-endura",
+      "stock": "kodak-portra-160",
+      "lut": "spk-kodak-portra-160-kodak-portra-endura.bin",
+      "label": "Endura",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#C3DEEC",
+        "#E2D2C6",
+        "#C6D2AA"
+      ]
+    },
+    {
+      "id": "spk-kodak-portra-400-fujifilm-crystal-archive-typeii",
+      "stock": "kodak-portra-400",
+      "lut": "spk-kodak-portra-400-fujifilm-crystal-archive-typeii.bin",
+      "label": "Crystal Archive",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#C1DEED",
+        "#E4D1C6",
+        "#BDD8AE"
+      ]
+    },
+    {
+      "id": "spk-kodak-portra-400-kodak-portra-endura",
+      "stock": "kodak-portra-400",
+      "lut": "spk-kodak-portra-400-kodak-portra-endura.bin",
+      "label": "Endura",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#C2DEED",
+        "#E4D2C7",
+        "#C2D4AB"
+      ]
+    },
+    {
+      "id": "spk-kodak-portra-800-fujifilm-crystal-archive-typeii",
+      "stock": "kodak-portra-800",
+      "lut": "spk-kodak-portra-800-fujifilm-crystal-archive-typeii.bin",
+      "label": "Crystal Archive",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#BDDAEA",
+        "#E2CFC4",
+        "#B7D6B2"
+      ]
+    },
+    {
+      "id": "spk-kodak-portra-800-kodak-portra-endura",
+      "stock": "kodak-portra-800",
+      "lut": "spk-kodak-portra-800-kodak-portra-endura.bin",
+      "label": "Endura",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#BFDAEB",
+        "#E2D1C5",
+        "#BBD2AE"
+      ]
+    },
+    {
+      "id": "spk-kodak-portra-800-push1-fujifilm-crystal-archive-typeii",
+      "stock": "kodak-portra-800-push-1",
+      "lut": "spk-kodak-portra-800-push1-fujifilm-crystal-archive-typeii.bin",
+      "label": "Crystal Archive",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#BFDBEB",
+        "#E2D1C6",
+        "#B9D7B4"
+      ]
+    },
+    {
+      "id": "spk-kodak-portra-800-push1-kodak-portra-endura",
+      "stock": "kodak-portra-800-push-1",
+      "lut": "spk-kodak-portra-800-push1-kodak-portra-endura.bin",
+      "label": "Endura",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#C1DBEB",
+        "#E3D2C7",
+        "#BDD3B1"
+      ]
+    },
+    {
+      "id": "spk-kodak-portra-800-push2-fujifilm-crystal-archive-typeii",
+      "stock": "kodak-portra-800-push-2",
+      "lut": "spk-kodak-portra-800-push2-fujifilm-crystal-archive-typeii.bin",
+      "label": "Crystal Archive",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#C3DCEB",
+        "#E4D3CA",
+        "#BCD8B7"
+      ]
+    },
+    {
+      "id": "spk-kodak-portra-800-push2-kodak-portra-endura",
+      "stock": "kodak-portra-800-push-2",
+      "lut": "spk-kodak-portra-800-push2-kodak-portra-endura.bin",
+      "label": "Endura",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#C4DCEB",
+        "#E4D4CA",
+        "#BFD4B4"
+      ]
+    },
+    {
+      "id": "spk-kodak-ultramax-400-fujifilm-crystal-archive-typeii",
+      "stock": "kodak-ultramax-400",
+      "lut": "spk-kodak-ultramax-400-fujifilm-crystal-archive-typeii.bin",
+      "label": "Crystal Archive",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#BCD9EB",
+        "#E2CFC2",
+        "#B6D8AF"
+      ]
+    },
+    {
+      "id": "spk-kodak-ultramax-400-kodak-portra-endura",
+      "stock": "kodak-ultramax-400",
+      "lut": "spk-kodak-ultramax-400-kodak-portra-endura.bin",
+      "label": "Endura",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#BDDAEC",
+        "#E3D0C3",
+        "#BAD4AA"
+      ]
+    },
+    {
+      "id": "spk-kodak-verita-200d-kodak-2383",
+      "stock": "kodak-verita-200d",
+      "lut": "spk-kodak-verita-200d-kodak-2383.bin",
+      "label": "2383",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#BBD5E7",
+        "#DCCBBE",
+        "#B8CEA3"
+      ]
+    },
+    {
+      "id": "spk-kodak-verita-200d-kodak-2393",
+      "stock": "kodak-verita-200d",
+      "lut": "spk-kodak-verita-200d-kodak-2393.bin",
+      "label": "2393",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#B5D1E5",
+        "#D9C7B9",
+        "#B5CA9B"
+      ]
+    },
+    {
+      "id": "spk-kodak-vision3-200t-kodak-2383",
+      "stock": "kodak-vision3-200t",
+      "lut": "spk-kodak-vision3-200t-kodak-2383.bin",
+      "label": "2383",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#C1D5E9",
+        "#DCCCBC",
+        "#C3D198"
+      ]
+    },
+    {
+      "id": "spk-kodak-vision3-200t-kodak-2393",
+      "stock": "kodak-vision3-200t",
+      "lut": "spk-kodak-vision3-200t-kodak-2393.bin",
+      "label": "2393",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#BCD1E7",
+        "#D9C8B7",
+        "#C0CD90"
+      ]
+    },
+    {
+      "id": "spk-kodak-vision3-250d-kodak-2383",
+      "stock": "kodak-vision3-250d",
+      "lut": "spk-kodak-vision3-250d-kodak-2383.bin",
+      "label": "2383",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#B9D2E5",
+        "#DACABE",
+        "#B6CDA5"
+      ]
+    },
+    {
+      "id": "spk-kodak-vision3-250d-kodak-2393",
+      "stock": "kodak-vision3-250d",
+      "lut": "spk-kodak-vision3-250d-kodak-2393.bin",
+      "label": "2393",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#B4CFE3",
+        "#D7C6B8",
+        "#B4C99E"
+      ]
+    },
+    {
+      "id": "spk-kodak-vision3-500t-kodak-2383",
+      "stock": "kodak-vision3-500t",
+      "lut": "spk-kodak-vision3-500t-kodak-2383.bin",
+      "label": "2383",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#BFD4E8",
+        "#DACABA",
+        "#C0CE9C"
+      ]
+    },
+    {
+      "id": "spk-kodak-vision3-500t-kodak-2393",
+      "stock": "kodak-vision3-500t",
+      "lut": "spk-kodak-vision3-500t-kodak-2393.bin",
+      "label": "2393",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#BAD1E5",
+        "#D6C5B5",
+        "#BDCA94"
+      ]
+    },
+    {
+      "id": "spk-kodak-vision3-50d-kodak-2383",
+      "stock": "kodak-vision3-50d",
+      "lut": "spk-kodak-vision3-50d-kodak-2383.bin",
+      "label": "2383",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#BDD5E8",
+        "#DDCEC0",
+        "#BBD2A5"
+      ]
+    },
+    {
+      "id": "spk-kodak-vision3-50d-kodak-2393",
+      "stock": "kodak-vision3-50d",
+      "lut": "spk-kodak-vision3-50d-kodak-2393.bin",
+      "label": "2393",
+      "engine": "SpektraFilm",
+      "source": "spektrafilm_lut",
+      "exposureEV": 1.5,
+      "swatch": [
+        "#B8D2E6",
+        "#DBCABB",
+        "#B8CE9E"
+      ]
+    }
+  ]
+}
