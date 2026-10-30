@@ -37,7 +37,7 @@ struct RenderCheck {
         }
         do {
             try library.load(device: renderer.device, catalog: catalog) { _ in }
-            let image = try ImageLoader.shared.loadFull(url: input)
+            let loaded = try ImageLoader.shared.loadFull(url: input)
             var edit = PhotoEdit(lookID: look.id, strength: 1, adjustments: .neutral)
             if args.count > 4 { edit.adjustments.exposure = Double(args[4]) ?? 0 }
             if args.count > 5 { edit.adjustments.contrast = Double(args[5]) ?? 0 }
@@ -54,7 +54,7 @@ struct RenderCheck {
             if args.count > 16 { edit.adjustments.grainChroma = Double(args[16]) ?? 0 }
             if args.count > 17 { edit.adjustments.grainShadow = Double(args[17]) ?? 0 }
             if args.count > 18 { edit.adjustments.fade = Double(args[18]) ?? 0 }
-            guard let result = renderer.renderFull(image, edit: edit, look: look) else {
+            guard let result = renderer.renderFull(loaded, edit: edit, look: look) else {
                 print("render failed")
                 exit(5)
             }

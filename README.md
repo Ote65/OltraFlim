@@ -150,7 +150,7 @@ the inspector.
 ## New in 1.1
 
 - **Bilingual UI** — Chinese is the default; Settings has a 中文 / English switch that applies immediately.
-- **Imported LUT library** — import 3D `.cube` LUTs from the sidebar. They are applied as Rec.709 display LUTs over the adjusted photo and remembered across launches.
+- **Imported LUT library** — import 3D `.cube` LUTs from the sidebar. ACEScc LMTs (Alcedo header) run through the ACES pipeline; everything else is applied as a Rec.709 display LUT. Both are remembered across launches.
 - **Transparency panel** — two smart sliders:
   - **Tonal clarity** reads the final histogram's black/white edges and remaps levels, removing the grey veil.
   - **Color clarity** samples the average highlight and shadow colours and neutralises casts with the complementary-colour principle (for example, a yellow highlight gains blue, a green shadow loses green).
@@ -183,7 +183,9 @@ Tools/
 ### Film pipeline
 
 ```
-sRGB photo → linear Rec.709 → white balance / exposure / tone / colour
+RAW (CIRAWFilter, scene-linear, headroom > 1.0) or sRGB photo → linear Rec.709
+→ auto-exposure baseline (weighted mean → 18% grey)
+→ white balance / exposure / tone / colour
 → AP1 → ACEScc → 33³ film LUT → gamma-2.2 encoded Rec.709
 → halation / grain / vignette / dither → display
 ```
@@ -192,10 +194,18 @@ The LUTs already contain the ACES 2.0 SDR output transform, so the RGB values
 coming out of the 3D texture are ready to display. A neutral LUT with the same
 exposure is blended in for the film-strength control.
 
-Imported LUTs use a second branch: the adjusted scene-linear image is encoded to
-sRGB and sampled through the user's 33³/65³ display LUT. That branch bypasses the
-ACES render, because almost all downloadable creative LUTs are Rec.709 display
-transforms rather than ACEScc LMTs.
+The source texture is `rgba16Float`, so RAW highlights stay above 1.0 and reach
+the upper half of the ACEScc LUT domain. Without that headroom the print shoulder
+is never exercised and whites cap around 0.84.
+
+Imported LUTs use a second branch that reads the `.cube` header:
+
+- `input_space: "ACEScc"` (Alcedo LMT exports): the graded scene is encoded to
+  ACEScc, sampled through the LMT, then run through the neutral pack entry
+  (which is the ACES 2.0 SDR display transform on the same ACEScc grid).
+  The exposure hint from the header is applied first.
+- anything else: the adjusted scene-linear image is encoded to sRGB and sampled
+  as a Rec.709 display LUT.
 
 After the look is formed, the RGB/luma curve texture is applied, then the colour
 mixer, **Tonal clarity** (histogram-edge levels), **Color clarity** (automatic
@@ -244,8 +254,10 @@ are converted to a compact RGBA16F binary in
 The registry lives in `importedLUTs.json`. Imported LUTs appear as their own cards
 with an identity swatch and can be deleted from the card's context menu.
 
-Imported LUTs are **not** ACEScc LMTs. If a LUT was authored for an ACEScc LMT slot,
-it will not match; re-bake it as a Rec.709 display LUT or use the built-in pack.
+The importer reads `# ALCEDO_LUT` metadata: `.cube` files that declare
+`input_space: "ACEScc"` are applied as ACES look-modification transforms (with
+the header's exposure hint), while everything else is treated as a Rec.709
+display LUT. Negative entries and per-channel `DOMAIN_MIN/MAX` are preserved.
 
 ## Transparency
 

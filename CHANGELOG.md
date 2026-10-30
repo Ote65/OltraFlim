@@ -2,6 +2,44 @@
 
 All notable changes to OltraFlim. Dates are project-local.
 
+## Unreleased — colour pipeline
+
+### Changed
+
+- **RAW input is scene-linear with highlight headroom.** RAW files now decode
+  through `CIRAWFilter` with `boostAmount = 0`, `boostShadowAmount = 0` and the
+  local tone map off, then render into an `rgba16Float` source texture. Values
+  above 1.0 survive, so the film LUT's ACEScc domain is used end to end instead
+  of stopping at 55% (which capped whites around 0.84).
+- **Automatic exposure baseline.** A center-weighted mean luma is normalised to
+  18% grey (spektrafilm's `measure_autoexposure_ev`) and applied through the
+  previously unused `exposureBias` slot.
+- **All sources are linear.** Non-RAW images are colour managed by Core Image
+  into the same linear working space; the shader no longer decodes sRGB.
+- **Imported `.cube` LUTs honour their header.** `# ALCEDO_LUT` metadata
+  (`input_space`) and exposure hints are parsed. ACEScc (AP1) LMTs run through
+  ACEScc and then the neutral pack entry as the ACES 2.0 SDR display transform;
+  everything else stays a Rec.709 display LUT. Negative LUT entries and
+  per-channel `DOMAIN_MIN/MAX` are preserved instead of clipped.
+- ACEScc encode/decode now follows S-2014-003 (2⁻¹⁶ toe with the 0.5 factor) in
+  both `Shaders.metal` and `Tools/build_luts.py`.
+- **Grain is now a physical particle model.** The three-octave value noise in
+  `processImage` was replaced by `grainHorizontal` + `grainVertical`: each
+  developer grain is a Boolean sample on a shared pixel lattice, thresholded by
+  the local density, then filtered by a separable Gaussian window with
+  one-pixel tap spacing. Filtered coverage is compared with the clean image, so
+  the mean tone is preserved; a Σw² normalisation keeps `Grain size` from
+  changing the grain strength, and the amplitude follows per-layer RMS
+  granularity curves (blue is the coarsest). `Grain roughness` widens the
+  clump, `Grain chroma` blends the shared silver field with independent
+  per-layer fields, and `Grain shadow` lifts the toe. The passes are skipped
+  entirely at grain 0, so existing edits render exactly as before.
+  Algorithm reference: IPOL 2017 and AlcedoStudio `drt_neighbor.metal`
+  (GPLv3, studied only — the implementation is original Metal code).
+- New **Auto exposure** switch in both settings surfaces (on by default, as in
+  spektrafilm). Turning it off keeps the RAW's absolute exposure for edits that
+  were graded before this change.
+
 ## 1.4 — 2026-10-30
 
 ### Fixed

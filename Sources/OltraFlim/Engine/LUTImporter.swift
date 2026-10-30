@@ -7,6 +7,14 @@ struct CubeLUT {
     /// n³ × 3 floats. Index = ((blue * n + green) * n + red) * 3,
     /// matching .cube's red-fastest ordering and Metal's 3D layout.
     var values: [Float]
+    /// Declared input space from an `# ALCEDO_LUT` header, e.g. "ACEScc".
+    var inputSpace: String? = nil
+    /// Input exposure the LUT expects, in stops.
+    var exposureEV: Double = 0
+
+    var isACEScc: Bool {
+        LUTInputSpace.isACEScc(inputSpace)
+    }
 }
 
 enum LUTImportError: LocalizedError {
@@ -47,10 +55,15 @@ enum LUTImporter {
         var domainMax = SIMD3<Float>(1, 1, 1)
         var values: [Float] = []
         var valuesReserve = 0
+        var comments: [String] = []
 
         for rawLine in text.split(whereSeparator: \.isNewline) {
             let line = rawLine.trimmingCharacters(in: .whitespaces)
-            if line.isEmpty || line.hasPrefix("#") { continue }
+            if line.hasPrefix("#") {
+                comments.append(line)
+                continue
+            }
+            if line.isEmpty { continue }
             let upper = line.uppercased()
             if upper.hasPrefix("TITLE") {
                 if let range = line.range(of: "\"") {
@@ -94,12 +107,14 @@ enum LUTImporter {
             if parts.count == 3 {
                 if values.isEmpty { values.reserveCapacity(valuesReserve) }
                 if let r = Float(parts[0]), let g = Float(parts[1]), let b = Float(parts[2]) {
-                    let minV = min(domainMin.x, min(domainMin.y, domainMin.z))
-                    let maxV = max(domainMax.x, max(domainMax.y, domainMax.z))
-                    let span = max(maxV - minV, 1e-6)
-                    values.append(((r - domainMin.x) / span).clamped(to: 0...1))
-                    values.append(((g - domainMin.y) / span).clamped(to: 0...1))
-                    values.append(((b - domainMin.z) / span).clamped(to: 0...1))
+                    // Normalise per channel and keep out-of-domain values:
+                    // ACES LMTs legitimately carry negative densities.
+                    let spanR = max(domainMax.x - domainMin.x, 1e-6)
+                    let spanG = max(domainMax.y - domainMin.y, 1e-6)
+                    let spanB = max(domainMax.z - domainMin.z, 1e-6)
+                    values.append((r - domainMin.x) / spanR)
+                    values.append((g - domainMin.y) / spanG)
+                    values.append((b - domainMin.z) / spanB)
                 }
             }
         }
@@ -112,7 +127,47 @@ enum LUTImporter {
         }
         let name = title?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
             ?? url.deletingPathExtension().lastPathComponent
-        return CubeLUT(title: name, size: n, values: values)
+        let meta = metadata(from: comments)
+        return CubeLUT(title: name, size: n, values: values,
+                       inputSpace: meta.inputSpace, exposureEV: meta.exposureEV)
+    }
+
+    /// Alcedo writes a JSON header line plus human comments that state the
+    /// input space and the exposure the LUT expects. Both are needed to
+    /// evaluate an ACEScc LMT correctly.
+    private struct CubeMetadata {
+        var inputSpace: String?
+        var exposureEV: Double = 0
+    }
+
+    private static func metadata(from comments: [String]) -> CubeMetadata {
+        var meta = CubeMetadata()
+        var requirement: String?
+        for line in comments {
+            if line.hasPrefix("# ALCEDO_LUT "),
+               let data = String(line.dropFirst("# ALCEDO_LUT ".count)).data(using: .utf8),
+               let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                meta.inputSpace = object["input_space"] as? String
+                requirement = object["display_requirement"] as? String
+            }
+            if let range = line.range(of: "exposure_ev=") {
+                let tail = line[range.upperBound...]
+                let token = tail.prefix { $0.isNumber || $0 == "." || $0 == "-" || $0 == "+" }
+                if let value = Double(token) { meta.exposureEV = value }
+            }
+            if let range = line.range(of: "Exposure +", options: .caseInsensitive) {
+                let tail = line[range.upperBound...]
+                let token = tail.prefix { $0.isNumber || $0 == "." }
+                if let value = Double(token) { meta.exposureEV = value }
+            }
+        }
+        if meta.exposureEV == 0, let requirement,
+           let range = requirement.range(of: "Exposure +", options: .caseInsensitive) {
+            let tail = requirement[range.upperBound...]
+            let token = tail.prefix { $0.isNumber || $0 == "." }
+            if let value = Double(token) { meta.exposureEV = value }
+        }
+        return meta
     }
 
     static func writeBinary(_ lut: CubeLUT, to url: URL) throws {
@@ -217,9 +272,9 @@ enum LUTImporter {
             let idx = ((b * n + g) * n + r) * 3
             let rgb = (lut.values[idx], lut.values[idx + 1], lut.values[idx + 2])
             return String(format: "#%02X%02X%02X",
-                          Int(round(rgb.0 * 255)),
-                          Int(round(rgb.1 * 255)),
-                          Int(round(rgb.2 * 255)))
+                          Int(round(min(1, max(0, rgb.0)) * 255)),
+                          Int(round(min(1, max(0, rgb.1)) * 255)),
+                          Int(round(min(1, max(0, rgb.2)) * 255)))
         }
     }
 }

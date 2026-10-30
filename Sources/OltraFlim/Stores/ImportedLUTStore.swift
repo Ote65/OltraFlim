@@ -67,7 +67,9 @@ final class ImportedLUTStore {
             fileName: fileName,
             originalFileName: url.lastPathComponent,
             createdAt: Date(),
-            swatch: LUTImporter.swatch(for: lut)
+            swatch: LUTImporter.swatch(for: lut),
+            inputSpace: lut.inputSpace,
+            exposureEV: lut.exposureEV
         )
         add(entry)
         return (entry, texture)

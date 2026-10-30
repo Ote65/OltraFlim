@@ -7,11 +7,22 @@ struct LUTPackProgress {
     var phase: String
 }
 
+/// How an imported LUT wants to be evaluated.
+///
+/// Alcedo's export writes ACEScc (AP1) -> ACEScc (AP1) look-modification
+/// transforms; they must be fed ACEScc and then run through the display
+/// transform. Everything else is a display-referred Rec.709 creative LUT.
+struct LUTInfo: Equatable {
+    var isACEScc: Bool = false
+    var exposureEV: Float = 0
+}
+
 /// Loads the entire 33³ film pack into GPU 3D textures. The pack is only ~32 MB,
 /// so it stays resident and every look preview is a single texture bind away.
 final class LUTLibrary {
     private(set) var film: [String: MTLTexture] = [:]
     private(set) var userLUTs: [String: MTLTexture] = [:]
+    private var userLUTInfos: [String: LUTInfo] = [:]
     private(set) var neutral0: MTLTexture?
     private(set) var neutral15: MTLTexture?
     let size: Int
@@ -21,9 +32,10 @@ final class LUTLibrary {
         self.size = size
     }
 
-    func registerUserLUT(id: String, texture: MTLTexture) {
+    func registerUserLUT(id: String, texture: MTLTexture, info: LUTInfo = LUTInfo()) {
         userLock.lock()
         userLUTs[id] = texture
+        userLUTInfos[id] = info
         userLock.unlock()
     }
 
@@ -34,9 +46,17 @@ final class LUTLibrary {
         return userLUTs[id]
     }
 
+    func userLUTInfo(_ id: String?) -> LUTInfo? {
+        guard let id else { return nil }
+        userLock.lock()
+        defer { userLock.unlock() }
+        return userLUTInfos[id]
+    }
+
     func removeUserLUT(id: String) {
         userLock.lock()
         userLUTs[id] = nil
+        userLUTInfos[id] = nil
         userLock.unlock()
     }
 
